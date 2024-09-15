@@ -25,8 +25,7 @@ struct is_instantiation_of<Template<T>, Template> : std::true_type {};
 #define type_assertion static_assert (std::is_arithmetic<T>::value || is_instantiation_of<T, Unit>::value, \
     "Invalid type: Arithmetic operation is only allowed with other Units or arithmetic types.");
 
-
-// Template Class
+// The Template Class
 template<typename Base, typename = typename std::enable_if_t<std::is_integral_v<Base>>>
 struct Unit {
 private:
