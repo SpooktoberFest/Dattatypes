@@ -5,16 +5,14 @@
 
 ## Preamble
 
+A data type i have wanted for several projects for a while.
+Feel free to use or modify.
 
 *- Venlig hilsen Lukas Kronholm.*
 
 
 ## Dependencies
-
-- **CMake**: Minimum version 3.10
-- **Eigen**: For linear algebra
-
-
+none.
 
 
 
