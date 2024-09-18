@@ -31,7 +31,9 @@ A unit is initialized with the aritmetic datatype it should inherit byte size an
     // This would encode 256 unique, equidistant angles.
     Unit<char> angle_by_pi = 0.5_SU08;
 
-    
+    // These may be of particular interest.
+    Complex<Unit<int>> u_z;
+    Quaterneon<Unit<int>> u_q;
 
 ```
 

@@ -3,14 +3,16 @@
 # To do:
 
 Now:
-- Double check Unit
-- Begin complex numbers
+- Figure out what _den should be
+- Figure out how to deal with max and min values for _num
+- Double & triple check Unit
+- Test with std::complex
+
 
 ----
 
 
 Soon:
-- Begin unit complex numbers
 
 
 ----
