@@ -39,10 +39,17 @@ A unit is initialized with the aritmetic datatype it should inherit byte size an
 
 When defining (and ideally also when using) operator overloads for Units, lhs should be assumed/made to have greater resolution than rhs. This is not a strict requirement.
 
-# Unit
-
-
-# Unit
 
 
 
+# My C++ Library
+
+A simple template for a C++ library project using CMake.
+
+## Build Instructions:
+```bash
+mkdir build
+cd build
+cmake ..
+make
+ctest
