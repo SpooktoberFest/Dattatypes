@@ -4,11 +4,19 @@
 #include <limits>
 #include <cmath>
 #include <stdexcept>
-//
-#include "dattatypes.hpp"
+
 
 namespace Dattatypes
 {
+
+
+// // Primary template for checking if a type is an instantiation of a template
+// template <typename, template <typename> class>
+// struct is_templated : std::false_type {};
+// // Specialization: True if the type is an instantiation of the given template
+// template <typename T, template <typename> class Template>
+// struct is_templated<Template<T>, Template> : std::true_type {};
+
 
     //     template <typename Base, typename = std::enable_if_t<std::is_integral_v<Base>>>
     //     class Unit
