@@ -58,25 +58,25 @@ namespace Dattatypes {
         using ThisType = Prec<T, order>;
     public:
         using value_type = T;
-        static constexpr T _n = -order; // Amount by which incoming ints should be left-shifted.
+        static constexpr T _n = order;
     private:
         // Factor for converting incoming floats or negative numbers.
-        static constexpr float _f = (_n >= 0) ? float(T(1) << _n) : 1.0f / float(T(1) << -_n);
+        static constexpr float _f = (_n >= 0) ? 1.0f / float(T(1) << _n) : float(T(1) << -_n);
         static constexpr float _if = 1/_f;
 
         // Scale from integer space to data space
         constexpr int scale(const int value) const {
             if constexpr (_n >= 0)
-                return (value >= 0) ? value << _n : value * _f;
+                return (value >= 0) ? value >> _n : value * _f;
             else
-                return (value >= 0) ? value >> (-_n) : value * _f;
+                return (value >= 0) ? value << -_n : value * _f;
         }
         // Scale from data space to integer space
         constexpr long iscale(T value) const {
             if constexpr (_n >= 0)
-                return (value >= 0) ? value >> _n : value * _if;
+                return (value >= 0) ? value << _n : value * _if;
             else
-                return (value >= 0) ? value << (-_n) : value * _if;
+                return (value >= 0) ? value >> -_n : value * _if;
         }
         // Scale from float space to data space
         constexpr int fscale(const double value) const { return int(value * _f); }
@@ -119,8 +119,8 @@ namespace Dattatypes {
         constexpr ThisType& operator/=(const double value) { _data /= value; return *this; }
         constexpr ThisType& operator+=(const ThisType other) { _data += other._data; return *this; }
         constexpr ThisType& operator-=(const ThisType other) { _data -= other._data; return *this; }
-        constexpr ThisType& operator*=(const ThisType other) { (_data *= other._data) >>= (_n); return *this; }
-        constexpr ThisType& operator/=(const ThisType other) { ((_data <<= _n) /= other._data); return *this; }
+        constexpr ThisType& operator*=(const ThisType other) { (_data *= other._data) <<= (_n); return *this; }
+        constexpr ThisType& operator/=(const ThisType other) { ((_data >>= _n) /= other._data); return *this; }
 
         // Bitwise Assignment Operators: ( >>=, <<=, &=, ^=, |= )
         constexpr ThisType& operator>>=(const unsigned value) { _data >>= value; return *this; }
@@ -169,7 +169,7 @@ namespace Dattatypes {
         constexpr operator double() const { return double(_data * _if); }
         template<typename OtherPrec>
         constexpr explicit operator OtherPrec() const {
-            constexpr int shift = _n - OtherPrec::_n;
+            constexpr int shift = OtherPrec::_n - _n;
             using OtherT = typename OtherPrec::value_type;
             typename std::conditional_t<(sizeof(T) > sizeof(OtherT)), T, OtherT> value = _data;
 

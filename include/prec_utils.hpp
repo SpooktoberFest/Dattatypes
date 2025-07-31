@@ -4,14 +4,6 @@
 #include <cmath>
 #include <stdexcept>
 
-
-
-#include "debug.hpp"
-static auto src = "Prec:TEST";
-
-
-
-
 #include <prec.hpp>
 
 namespace Dattatypes {
@@ -51,12 +43,12 @@ namespace Dattatypes {
 
     #define ASSERT_ANGLE(T) ASSERT_PREC(T) static_assert( \
         std::is_signed_v<typename T::value_type> && \
-        (T::_n == 8 * sizeof(typename T::value_type) - 2), \
+        (T::_n == -(8 * sizeof(typename T::value_type) - 2)), \
         "Type is not a Prec-based angle. I.e.: where the range is [-2.0, 2.0)." );
 
     #define ASSERT_PROBABILITY(T) ASSERT_PREC(T) static_assert( \
         std::is_unsigned_v<typename T::value_type> && \
-        (T::_n == 8 * sizeof(typename T::value_type) - 1), \
+        (T::_n == -(8 * sizeof(typename T::value_type) - 1)), \
         "Type is not a Prec-based probability. I.e.: where the range is [0.0, 2.0)." );
 
 
@@ -69,29 +61,22 @@ namespace Dattatypes {
     template<typename T>
     constexpr T sqrt(const T& prec, int iterations = 32) {
         ASSERT_PREC(T)
-        if constexpr (std::is_constant_evaluated()) {
-            if (prec._data < 0) return T(-1);
-        } else
-            if (prec._data < 0) throw std::runtime_error("sqrt input should be non-negative");
+        if (prec._data < 0)
+            throw std::runtime_error("sqrt input should be non-negative");
 
-        u_int64_t S = u_int64_t(prec._data);
-        u_int64_t x_n = S >> 1;
-        int x_nm1;
         int shift = -T::_n;
-        int t = 1 << -shift;
+        u_int64_t S = u_int64_t(prec._data);
+        u_int64_t x_n = (S >> (1 - (-shift >> 1)));
+        u_int64_t x_nm1 = 0;
+        int t = 1 << shift;
 
-        LOG_DEBUG("S = {} : {}", S >> 8, S);
-
-        // Dampened Newton-Raphson Iteration
-        while (iterations-- > 0 && x_nm1 != x_n) {
+        while (iterations-- > 0 && x_n != x_nm1) {
             x_nm1 = x_n;
-            x_n = ( (x_n+1) + ((S / (x_n)) << -shift)) >> 1;
-            LOG_DEBUG("x_n = {} : {}", float(x_n) / t, x_n);
+            x_n = ( (x_n+1) + ( (S / (x_n) ) << shift) ) >> 1;
         }
 
         T res;
         res._data = x_n;
-
         return res;
     }
 

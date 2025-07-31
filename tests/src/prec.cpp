@@ -5,7 +5,7 @@
 #include "debug.hpp"
 #include "prec_utils.hpp"
 
-// static constexpr auto src = "Prec:TEST";
+static constexpr auto src = "Prec:TEST";
 using namespace std;
 using namespace Dattatypes;
 
@@ -74,16 +74,9 @@ int main()
     static_assert(!(prec8(5).fapprox(5.3)), "Approximation failed step 4");
 
     // Square Root
-    // static_assert(sqrt(prec32(27)) == prec32(9), "Square Root failed step 1");
-    // static_assert(sqrt(prec32(27)).approx(9), "Square Root failed step 2");
-
-    ASSERT_ANGLE(angle32);
-
-    int r1 = 9;
-    auto r2 = sqrt(prec32(r1*r1));
-    LOG_INFO("Root: {}, data: {}", double(r2), r2._data);
-
-
+    static_assert(sqrt(prec32(81)) == prec32(9), "Square Root failed step 1");
+    constexpr int x = 834;
+    static_assert(sqrt(prec32(x*x)) == prec32(x), "Square Root failed step 2");
 
     LOG_INFO("All tests for Prec passed!");
     return 0;
