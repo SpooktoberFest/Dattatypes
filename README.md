@@ -5,51 +5,29 @@
 
 ## Preamble
 
-A data type i have wanted for several projects for a while.
+Hello! This is a library of datatypes, that I have found usefull.
 Feel free to use or modify.
 
-*- Venlig hilsen Lukas Kronholm.*
+*- Med venlig hilsen, Lukas Kronholm.*
+
+P.S. See the tests for examples.
 
 
-## Dependencies
-None.
+## Build and Execute
+From the SlappyBird directory:
+- Build: `./scripts/setup.sh`
+- Run Game: `./bin/SuperFlappy`
+- Reload Levels: `./bin/SuperFlappy resources/load_from.json`
+
+
+## Standards, Versions, Dependencies
+
+- **C++ Standard**: __
+- **CMake**: Minimum version __
+
 
 ## Contents
 
-# Unit
-
-Basically a Unit is a fraction between 0 and 1 (both inclusive), but unlike floating point numbers, it utilizes its full bit range.
-There is also a signed variant, that goes from -1 to 1 (excluding -1).
-The idea is for this datatype to represent probabilities, angles or composents of unit complex numbers and unit quaterneons.
-A unit is initialized with the aritmetic datatype it should inherit byte size and signedness from, like so:
-```C++
-    using namespace Dattatypes;
-
-    // (1 / 2^2^8) precision unit number.
-    Unit<unsigned long long> very_presice_unit_number(0.00043453);
-
-    // This would encode 256 unique, equidistant angles.
-    Unit<char> angle_by_pi = 0.5_SU08;
-
-    // These may be of particular interest.
-    Complex<Unit<int>> u_z;
-    Quaterneon<Unit<int>> u_q;
-
-```
-
-When defining (and ideally also when using) operator overloads for Units, lhs should be assumed/made to have greater resolution than rhs. This is not a strict requirement.
-
-
-
-
-# My C++ Library
-
-A simple template for a C++ library project using CMake.
-
-## Build Instructions:
-```bash
-mkdir build
-cd build
-cmake ..
-make
-ctest
+### Fixed Precision Numbers
+### Internal Pointer
+### Enum Flags

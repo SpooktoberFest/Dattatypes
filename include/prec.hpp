@@ -242,6 +242,10 @@ namespace Dattatypes {
         std::is_signed_v<typename A::value_type> && (A::_n == 8 * sizeof(typename A::value_type) - 2), \
         "Type is not a Prec-based angle. I.e.: where the range is [-2.0, 2.0)." );
 
+    #define ASSERT_PROBABILITY(A) static_assert( \
+        std::is_unsigned_v<typename A::value_type> && (A::_n == 8 * sizeof(typename A::value_type) - 1), \
+        "Type is not a Prec-based probability. I.e.: where the range is [0.0, 2.0)." );
+
     // TODO(): Implement Trigonometric functions
     // template <typename Angle, typename Slope>
     // constexpr Slope sin(const Angle& value) {
