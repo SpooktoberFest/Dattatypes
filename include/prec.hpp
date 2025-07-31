@@ -184,21 +184,6 @@ namespace Dattatypes {
         constexpr ThisType& clamp(double maxval) { if (_data > (maxval * _f)) _data = (maxval * _f); return *this; }
         constexpr ThisType& clamp(ThisType max) { if (_data > max._data) _data = max._data; return *this; }
 
-        // Square Root
-        constexpr ThisType sqrt() const {
-            int64_t value = static_cast<int64_t>(_data);
-            int64_t guess = value;
-            value = scale(value);
-
-            // Newton-Raphson Iteration
-            for (int i = 0; i < 16; ++i) {
-                if (guess == 0) break;
-                guess = (guess + value / guess) / 2;
-            }
-
-            return ThisType(T(guess));
-        }
-
         // Approximate Equality (epsilon is the resolution)
         constexpr bool approx(T value) const {
             return (_data > scale(value) - 1) && (_data < scale(value) + 1);
@@ -209,65 +194,11 @@ namespace Dattatypes {
         }
     };
 
-
-    typedef Prec<int8_t, -2>     prec8;     // 8-bit signed 1/4 precision number. Range: [-32, 31.75]
-    typedef Prec<int16_t, -4>    prec16;    // 16-bit signed 1/16 precision number. Range: [-2048, 2047.9375]
-    typedef Prec<int32_t, -8>    prec32;    // 32-bit signed 1/256 precision number. Range: [-8388608, 8388608)
-    typedef Prec<int64_t, -16>   prec64;    // 64-bit signed 1/65536 precision number. Range: [-140737488355328, 140737488355328)
-    typedef Prec<u_int8_t, -2>   u_prec8;   // 8-bit unsigned 1/4 precision number. Range: [0, 63.75]
-    typedef Prec<u_int16_t, -4>  u_prec16;  // 16-bit unsigned 1/16 precision number. Range: [0, 4095.9375]
-    typedef Prec<u_int32_t, -8>  u_prec32;  // 32-bit unsigned 1/256 precision number. Range: [0, 16777216)
-    typedef Prec<u_int64_t, -16> u_prec64;  // 64-bit unsigned 1/65536 precision number. Range: [0, 281474976710656)
-
-    typedef Prec<int8_t, -7>     unit8;     // 8-bit signed 1/128 precision unit number. Range: [-1.0, 1.0)
-    typedef Prec<int16_t, -15>   unit16;    // 16-bit signed 1/32768 precision unit number. Range: [-1.0, 1.0)
-    typedef Prec<int32_t, -31>   unit32;    // 32-bit signed 1/2147483648 precision unit number. Range: [-1.0, 1.0)
-    typedef Prec<int64_t, -63>   unit64;    // 64-bit signed 1/9223372036854775808 precision unit number. Range: [-1.0, 1.0)
-    typedef Prec<u_int8_t, -8>   u_unit8;   // 8-bit unsigned 1/256 precision unit number. Range: [0.0, 1.0)
-    typedef Prec<u_int16_t, -16> u_unit16;  // 16-bit unsigned 1/65536 precision unit number. Range: [0.0, 1.0)
-    typedef Prec<u_int32_t, -32> u_unit32;  // 32-bit unsigned 1/4294967296 precision unit number. Range: [0.0, 1.0)
-    typedef Prec<u_int64_t, -64> u_unit64;  // 64-bit unsigned 1/18446744073709551616 precision unit number. Range: [0.0, 1.0)
-
-    typedef Prec<int8_t, -6>     angle8;    // 8-bit signed 1/64 precision number. Range: [-2.0, 2.0)
-    typedef Prec<int16_t, -14>   angle16;   // 16-bit signed 1/16384 precision number. Range: [-2.0, 2.0)
-    typedef Prec<int32_t, -30>   angle32;   // 32-bit signed 1/1073741824 precision number. Range: [-2.0, 2.0)
-    typedef Prec<int64_t, -62>   angle64;   // 64-bit signed 1/4611686018427387904 precision number. Range: [-2.0, 2.0)
-    typedef Prec<u_int8_t, -7>   prob8;     // 8-bit unsigned 1/128 precision number. Range: [0.0, 2.0)
-    typedef Prec<u_int16_t, -15> prob16;    // 16-bit unsigned 1/32768 precision number. Range: [0.0, 2.0)
-    typedef Prec<u_int32_t, -31> prob32;    // 32-bit unsigned 1/2147483648 precision number. Range: [0.0, 2.0)
-    typedef Prec<u_int64_t, -63> prob64;    // 64-bit unsigned 1/9223372036854775808 precision number. Range: [0.0, 2.0)
-
-
-    #define ASSERT_ANGLE(A) static_assert( \
-        std::is_signed_v<typename A::value_type> && (A::_n == 8 * sizeof(typename A::value_type) - 2), \
-        "Type is not a Prec-based angle. I.e.: where the range is [-2.0, 2.0)." );
-
-    #define ASSERT_PROBABILITY(A) static_assert( \
-        std::is_unsigned_v<typename A::value_type> && (A::_n == 8 * sizeof(typename A::value_type) - 1), \
-        "Type is not a Prec-based probability. I.e.: where the range is [0.0, 2.0)." );
-
-    // TODO(): Implement Trigonometric functions
-    // template <typename Angle, typename Slope>
-    // constexpr Slope sin(const Angle& value) {
-    //     ASSERT_ANGLE(A)
-    //     return 1;
-    // }
-    // template <typename Angle, typename Slope>
-    // constexpr Slope cos(const Angle& value) {
-    //     ASSERT_ANGLE(A)
-    //     return 1;
-    // }
-    //     template <typename Slope, typename Angle>
-    // constexpr Angle asin(const Slope& value) {
-    //     ASSERT_ANGLE(A)
-    //     return 1;
-    // }
-    // template <typename Slope, typename Angle>
-    // constexpr Angle acos(const Slope& value) {
-    //     ASSERT_ANGLE(A)
-    //     return 1;
-    // }
-
+    // Prec Trait
+    template <typename T>
+    struct is_prec : std::false_type {};
+    template <typename... Args>
+    struct is_prec<Prec<Args...>> : std::true_type {};
 
 
 }; // namespace Dattatypes
