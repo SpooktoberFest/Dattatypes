@@ -13,11 +13,10 @@ Feel free to use or modify.
 P.S. See the tests for examples.
 
 
-## Build and Execute
-From the SlappyBird directory:
-- Build: `./scripts/setup.sh`
-- Run Game: `./bin/SuperFlappy`
-- Reload Levels: `./bin/SuperFlappy resources/load_from.json`
+## Build and Install (Linux)
+From `/Dattatypes/`:
+- Build: `cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr/local`
+- Install: `cmake --build build --target install`
 
 
 ## Standards, Versions, Dependencies

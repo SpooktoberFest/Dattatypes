@@ -7,22 +7,28 @@
 
 namespace Dattatypes {
 
+    template <typename T>
+    constexpr bool is_scoped_enum_v = std::is_enum_v<T> && !std::is_convertible_v<T, std::underlying_type_t<T>>;
+
+    #define ASSERT_SCOPED_ENUM(T) static_assert(is_scoped_enum_v<T>, "T must be a scoped enum (enum class)");
+
+
     // Bitwise Enum Operators
     template <typename T>
     constexpr T operator|(const T a, const T b) {
-        static_assert(std::is_enum_v<T>, "T must be an enum type");
+        ASSERT_SCOPED_ENUM(T)
         using U = std::underlying_type_t<T>;
         return T(U(a) | U(b));
     };
     template <typename T>
     constexpr T operator&(const T a, const T b) {
-        static_assert(std::is_enum_v<T>, "T must be an enum type");
+        ASSERT_SCOPED_ENUM(T)
         using U = std::underlying_type_t<T>;
         return T(U(a) & U(b));
     };
     template <typename T>
     constexpr T operator^(const T a, const T b) {
-        static_assert(std::is_enum_v<T>, "T must be an enum type");
+        ASSERT_SCOPED_ENUM(T)
         using U = std::underlying_type_t<T>;
         return T(U(a) ^ U(b));
     };
@@ -30,7 +36,7 @@ namespace Dattatypes {
     // Template Class for using Enums as Flags.
     template <typename T>
     class Flags {
-        static_assert(std::is_enum_v<T>, "T must be an enum type");
+        ASSERT_SCOPED_ENUM(T)
 
     protected:
         using U = std::underlying_type_t<T>;
@@ -63,7 +69,7 @@ namespace Dattatypes {
      */
     template <typename T>
     class FlagsOrValue : public Flags<T> {
-        static_assert(std::is_enum_v<T>, "T must be an enum type");
+        ASSERT_SCOPED_ENUM(T)
         static_assert(requires { T::USE_FLAGS; }, "T must define USE_FLAGS");
 
     public:
@@ -79,7 +85,7 @@ namespace Dattatypes {
      */
     template <typename T>
     class FlagsAndValue : public Flags<T> {
-        static_assert(std::is_enum_v<T>, "T must be an enum type");
+        ASSERT_SCOPED_ENUM(T)
         static_assert(requires { T::NUMBER_OF_FLAGS; }, "T must define NUMBER_OF_FLAGS");
 
         using U = std::underlying_type_t<T>;

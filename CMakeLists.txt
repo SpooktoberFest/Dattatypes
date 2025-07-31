@@ -25,12 +25,6 @@ target_include_directories(${LIBRARY_NAME} PUBLIC
 # Enable warnings
 target_compile_options(${LIBRARY_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 
-# # Export Targets for build tree
-# export(EXPORT ${LIBRARY_NAME}Targets
-#     FILE "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}Targets.cmake"
-#     NAMESPACE ${LIBRARY_NAME}::
-# )
-
 # Tests
 enable_testing()
 add_subdirectory(tests)
@@ -44,6 +38,7 @@ install(TARGETS ${LIBRARY_NAME}
     INCLUDES DESTINATION include
 )
 
+# Install Headers
 install(DIRECTORY include/ DESTINATION include)
 
 # Export Targets for install tree
@@ -53,17 +48,32 @@ install(EXPORT ${LIBRARY_NAME}Targets
     DESTINATION lib/cmake/${LIBRARY_NAME}
 )
 
-# Generate Config File for find_package()
+# Package Config Generation
 include(CMakePackageConfigHelpers)
 
+# Config Version File (for find_package Version Matching)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# Config File (Minimal)
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${LIBRARY_NAME}Config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}Config.cmake"
     INSTALL_DESTINATION lib/cmake/${LIBRARY_NAME}
 )
 
-# Install Config File
+# Install Config Files
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_NAME}ConfigVersion.cmake"
     DESTINATION lib/cmake/${LIBRARY_NAME}
+)
+
+# Optional: Export from build tree for immediate use (dev only)
+export(EXPORT ${LIBRARY_NAME}Targets
+    FILE "${CMAKE_BINARY_DIR}/${LIBRARY_NAME}Targets.cmake"
+    NAMESPACE ${LIBRARY_NAME}::
 )
