@@ -1,6 +1,5 @@
 
 #include <iostream>
-#include <stdexcept>
 
 #include "debug.hpp"
 #include "prec_utils.hpp"
@@ -12,6 +11,8 @@ using namespace Dattatypes;
 // Testing
 int main()
 {
+    LOG_INFO("=== Beginning Tests for Prec ===");
+
     constexpr prec32 a(2);
     constexpr prec32 b(0.5);
     constexpr prec32 c(3.0);
@@ -78,6 +79,6 @@ int main()
     constexpr int x = 834;
     static_assert(sqrt(prec32(x*x)) == prec32(x), "Square Root failed step 2");
 
-    LOG_INFO("All tests for Prec passed!");
+    LOG_INFO("=== All tests for Prec passed! ===\n\n");
     return 0;
 }

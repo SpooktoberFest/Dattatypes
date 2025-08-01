@@ -12,8 +12,9 @@ using namespace Dattatypes;
 // Testing
 int main()
 {
+    LOG_INFO("=== Beginning Tests for Internal Pointer ===");
 
 
-    LOG_INFO("All tests for Internal Pointer passed!");
+    LOG_INFO("=== All tests for Internal Pointer passed! ===\n\n");
     return 0;
 }

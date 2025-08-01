@@ -1,4 +1,5 @@
 #pragma once
+// === HEADER ONLY ===
 
 #include <type_traits>
 #include <cmath>

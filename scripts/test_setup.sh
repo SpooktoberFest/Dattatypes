@@ -7,11 +7,21 @@ cd "$SOURCE_DIR" || {
     exit 1;
 }
 
-# Make build and binary folders
+# Create test dirs
 mkdir -p bin
 mkdir -p build
 
-# Setup and buildb
+# Build tests
 cd build
 cmake -S "$SOURCE_DIR" -B .
 make
+
+# Run tests
+cd ..
+for file in bin/*; do
+    if [[ -f "$file" && -x "$file" ]]; then
+        "$file"
+    fi
+done
+
+echo "::FINISHED::"
