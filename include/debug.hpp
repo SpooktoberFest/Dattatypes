@@ -16,7 +16,7 @@
 #define ANSI_COLOR_MAGENTA "\033[35m"
 #define ANSI_COLOR_CYAN    "\033[36m"
 
-#define LOG_HEADING(severity) severity << ": [" << src << ":" << __LINE__ << "]"
+#define LOG_HEADING(severity) severity << ": [" << src << ":" << __LINE__ << "] "
 
 #if LOG_LEVEL >= 5
 #define LOG_DEBUG(...) \
@@ -27,7 +27,7 @@
 
 #if LOG_LEVEL >= 4
 #define LOG_INFO(...) \
-    std::cout << LOG_HEADING("INFO") << std::format(__VA_ARGS__) << std::endl;
+    std::cout << LOG_HEADING("INFO") << std::format(__VA_ARGS__) << ANSI_COLOR_RESET << std::endl;
 #else
 #define LOG_INFO(...)
 #endif
