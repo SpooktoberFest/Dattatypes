@@ -51,14 +51,14 @@ int main() {
     test = "Empty check";
     runtime_assert(colors.empty(), test, 1);
 
-    // test = "Single insert into empty"; // +2
-    // colors.insert(Color::DARK_YELLOW);
-    // runtime_assert(!colors.check(Color::DARK_CYAN), test, 1);
-    // runtime_assert(colors.check(Color::DARK_YELLOW), test, 2);
-    // runtime_assert(!colors.check(Color::DARK_MAGENTA), test, 3);
-    // runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    // runtime_assert(colors._data.size() == 2, test, "datasize");
-    // runtime_assert(colors.size() == 1, test, "size");
+    test = "Single insert into empty"; // +2
+    colors.insert(Color::DARK_YELLOW);
+    runtime_assert(!colors.check(Color::DARK_CYAN), test, 1);
+    runtime_assert(colors.check(Color::DARK_YELLOW), test, 2);
+    runtime_assert(!colors.check(Color::DARK_MAGENTA), test, 3);
+    runtime_assert(!(colors._data.size() & 1), test, "sanity");
+    runtime_assert(colors._data.size() == 2, test, "datasize");
+    runtime_assert(colors.size() == 1, test, "size");
 
     test = "Range insert across single |"; // mod2
     colors.insert(Color::DARK_CYAN, Color::DARK_MAGENTA);
@@ -69,7 +69,7 @@ int main() {
     runtime_assert(!colors.check(Color::DARK_BLACK), test, 4);
     runtime_assert(!(colors._data.size() & 1), test, "sanity");
     runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 3, test, "size");
+    runtime_assert(colors.size() == 3, test, ("size " + std::to_string(colors.size())));
     LOG_DEBUG("Content:");
     for (auto elem : colors._data) {
         LOG_DEBUG("* {}", elem);

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <type_traits>
+#include <algorithm>
 
 #include "debug.hpp"
 
@@ -22,92 +23,88 @@ namespace Dattatypes {
 
 		std::vector<U> _data; // pairs of [start, end)
 
+		// NOP
 		// TODO: Insert a single value into the interval set
 		void insert(const T item) {}
 
 		// Insert a range [item_begin, item_end] of values into the interval set
 		void insert(const T item_begin, const T item_end) {
-			U lower_value = U(item_begin);
-			U upper_value = U(item_end);
+			if (item_begin > item_end) return;
 
-			if (lower_value > upper_value) return;
+			U lower_value = U(item_begin);
+			U upper_value = U(item_end)+1;
 
 			if (_data.empty() || _data.back() < lower_value) {
-				_data.insert(_data.end(), {lower_value, upper_value+1});
+				_data.insert(_data.end(), {lower_value, upper_value});
 				return;
 			}
 			if (_data.front() > lower_value) {
-				_data.insert(_data.begin(), {lower_value, upper_value+1});
+				_data.insert(_data.begin(), {lower_value, upper_value});
 				return;
 			}
 
-			// Find the first i where: _data[i] <= lower_value
-			size_t i = 0;
-			while (i < _data.size() && _data[i] > lower_value) ++i;
+			// First element not greater than lower_value
+			auto lower_it = std::upper_bound(_data.begin(), _data.end(), lower_value) -1;
 
-			// Find the first j where: _data[j] < upper_value
-			size_t j = i;
-			while (j < _data.size() && _data[j] >= upper_value) ++j;
+			// First element not greater than upper_value
+			auto upper_it = std::upper_bound(_data.begin(), _data.end(), lower_value) -1;
 
-
-
-
-			const auto src = "TMP:UnlockMap:TEST";
-			LOG_WARN("I: {}, J: {}", i, j);
-
-
+			// Check if the iterators are at starts or ends of intervals based on index evenness
+			bool lower_is_start = ((lower_it - _data.begin()) & 1);
+			bool upper_is_end = !((lower_it - _data.begin()) & 1);
 
 			// Case of lower touching other interval
-			bool i_is_start = (i & 1);
-			if (!i_is_start && (lower_value == _data[i])) {
-				--i; i_is_start=true;
+			if (!lower_is_start && (lower_value == *lower_it)) {
+				--lower_it; lower_is_start=true;
 			}
 
 			// Case of upper touching other interval
-			bool j_is_end = !(j & 1);
-			if (!j_is_end && j != _data.size() && (upper_value+1 == _data[j])) {
-				++j; j_is_end=true;
+			if (!upper_is_end && upper_it != _data.end() && (upper_value == *upper_it)) {
+				++upper_it; upper_is_end=true;
 			}
-			if (j == _data.size()) {
-				LOG_WARN("J is at size!!");
+			if (upper_it == _data.end()) {
+				std::cout <<"upper_it is at end!!" << std::endl;
 			}
 
 			// Case of whole interval being if empty region
-			if ((i + 1 == j) && !i_is_start) {
-				_data.insert(_data.begin(), {lower_value, upper_value+1});
+			if ((upper_it - upper_it == 1) && !lower_is_start) {
+				_data.insert(_data.begin(), {lower_value, upper_value});
 				return;
 			}
 
 			// Force alignment
-			i += !i_is_start;
-			j -= !j_is_end;
+			lower_it += !lower_is_start;
+			upper_it -= !upper_is_end;
 
 			// Modify values
-			_data[i] = std::min(_data[i], lower_value);
-			_data[j] = std::max(_data[j], upper_value);
+			*lower_it = std::min(*lower_it, lower_value);
+			*upper_it = std::max(*upper_it, upper_value);
 
 			// Erase any gaps in the interval
-			if (i + 1 != j) _data.erase(_data.begin()+i+1, _data.begin()+j-1);
+			if (upper_it - upper_it == 1) _data.erase(lower_it+1, upper_it-1);
 		}
 
+		// NOP
 		// TODO: Erase a single value from the interval set
 		void erase(const T item) {}
 
+		// NOP
 		// TODO: Erase a range [item_begin, item_end] of values from the interval set
 		void erase(const T item_begin, const T item_end) {}
 
-
-		// Check whether the item is in any stored interval
+		// Check whether the item exists in any stored interval
 		bool check(const T item) const {
-			U item_value = U(item);
-			size_t i = 0;
+			if (_data.empty() || _data[0] > U(item)) return false;
 
-			// Catch empty data or item_values smaller than first data_value
-			if (_data.empty() || _data[0] > item_value) return false;
+			// Last element not greater than item
+			auto it = std::upper_bound(_data.begin(), _data.end(), U(item)) -1;
 
-			// i : data <= item
-			while (i < _data.size() && _data[i] > item_value) ++i;
-			return !(i & 1); // Item already exists if index is odd.
+			int index = it - _data.begin();
+
+			// const auto src = "TMP";
+			// LOG_DEBUG("Got index: {} while looking for {}", index, item);
+
+			return !(index & 1); // Item already exists if index is odd.
 		}
 
 		constexpr bool empty() const { return _data.empty(); }
@@ -115,10 +112,11 @@ namespace Dattatypes {
 		constexpr void reserve(std::size_t __n) { _data.reserve(__n); }
 		constexpr void shrink_to_fit() { _data.shrink_to_fit(); }
 
+		// Calculates the number of values covered
 		constexpr size_t size() const {
 			size_t sum=0, i=0;
 			for (; i<_data.size() ; i+=2)
-				sum += size_t(_data[i+1]-_data[i]-1);
+				sum += size_t(_data[i+1]-_data[i]);
 			return sum;
 		}
 
