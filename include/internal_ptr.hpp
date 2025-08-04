@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <stdexcept>
 
 #include "debug.hpp"
 
@@ -28,6 +29,7 @@ namespace Dattatypes {
         internal_ptr(T *parent, ThisType *target = nullptr) :
             _target_ptr(target) {
             _dist = intptr_t(this) - intptr_t(parent);
+            if (_dist < 0) throw std::runtime_error("A non-parent object must never be declared as parent.");
             _internal_ptrs.emplace_back(this);
         }
         // Copy Constructor (Non-functional)
@@ -89,9 +91,9 @@ namespace Dattatypes {
         T &operator*() const { return *_target_ptr->get_parent(); }
         T *operator->() const { return _target_ptr->get_parent(); }
 
-
         // Safety Checks
         bool has_valid_target() const { return (_target_ptr); }
+        bool is_valid_target() const { return _dist >= 0; }
 
     private:
 
@@ -103,7 +105,7 @@ namespace Dattatypes {
     template <typename T>
     std::vector<internal_ptr<T> *> internal_ptr<T>::_internal_ptrs;
     template <typename T>
-    intptr_t internal_ptr<T>::_dist;
+    intptr_t internal_ptr<T>::_dist = -1; // Initialized with invalid value;
 
 
 }; // namespace Dattatypes
