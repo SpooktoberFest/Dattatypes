@@ -8,9 +8,9 @@ static constexpr auto src = "Prec:TEST";
 using namespace std;
 using namespace Dattatypes;
 
+
 // Testing
-int main()
-{
+int main() {
     LOG_INFO("=== Beginning Tests for Prec ===");
 
     constexpr prec32 a(2);

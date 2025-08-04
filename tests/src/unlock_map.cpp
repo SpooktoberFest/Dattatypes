@@ -10,12 +10,6 @@ static constexpr auto src = "UnlockMap:TEST";
 using namespace std;
 using namespace Dattatypes;
 
-#define LOG_CONTENT \
-    LOG_DEBUG("Content:"); \
-    for (auto elem : map._data) { \
-        LOG_DEBUG("* {}", elem); \
-    }
-
 
 enum class Number : int8_t {
     N_18 = -18,
@@ -38,10 +32,10 @@ std::string vec2str(const std::vector<int8_t>& vec) {
     return result;
 }
 
+
 // Testing
 int main() {
     LOG_INFO("=== Beginning Tests for Unlock Map ===");
-
 
     int num=0;
     unlock_map<Number> map;
@@ -75,7 +69,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 2, "datasize");
     runtime_assert(map.size(), 7, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Range insert across upper", ++num);
     map.insert(Number::ZERO, Number::P_4);
@@ -83,7 +76,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 2, "datasize");
     runtime_assert(map.size(), 9, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Single erase into empty", ++num);
     map.erase(Number::P_15);
@@ -91,7 +83,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 2, "datasize");
     runtime_assert(map.size(), 9, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Single insert into range", ++num);
     map.insert(Number::ZERO);
@@ -99,7 +90,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 2, "datasize");
     runtime_assert(map.size(), 9, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Single erase into range", ++num);
     map.erase(Number::ZERO);
@@ -107,7 +97,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 4, "datasize");
     runtime_assert(map.size(), 8, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Range erase over gap", ++num);
     map.erase(Number::N_2, Number::P_2);
@@ -115,7 +104,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 4, "datasize");
     runtime_assert(map.size(), 4, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Single insert into gap", ++num);
     map.insert(Number::ZERO);
@@ -123,7 +111,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 6, "datasize");
     runtime_assert(map.size(), 5, "size");
-    LOG_CONTENT
 
     LOG_WARN("Test {} - Range insert onto gap", ++num);
     map.insert(Number::N_2, Number::P_2);
@@ -131,7 +118,6 @@ int main() {
     runtime_assert(!(map._data.size()&1), true, "sanity");
     runtime_assert(map._data.size(), 2, "datasize");
     runtime_assert(map.size(), 9, "size");
-    LOG_CONTENT
 
     // LOG_WARN("Test {} - Range erase across upper", ++num);
     // LOG_WARN("Test {} - Range erase across lower", ++num);

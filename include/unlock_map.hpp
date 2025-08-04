@@ -24,7 +24,7 @@ namespace Dattatypes {
 		unlock_map(std::vector<U> vec) : _data(std::move(vec)) {};
 		~unlock_map() = default;
 
-		std::vector<U> _data; // pairs of [start, end)
+		std::vector<U> _data; // Pairs of [start, past_end]
 
 		// Insert a single value into the interval set
 		void insert(const T item) {
@@ -124,7 +124,10 @@ namespace Dattatypes {
 			bool lower_is_start , upper_is_end;
 		};
 
-		// Unsafe: Get the range
+		/**
+		 * Find the range (Unsafe)
+		 * O(log(n))
+		 */
 		Range find_range(const U lower_value, const U upper_value) {
 
 			// Last element not lesser than lower_value
@@ -137,29 +140,24 @@ namespace Dattatypes {
 			bool lower_is_start = !((lower_it - _data.begin()) & 1);
 			bool upper_is_end = ((upper_it - _data.begin()) & 1);
 
-			std::cout <<"r1 Range from " << int(lower_it-_data.begin()) << " to " << int(upper_it-_data.begin()) << std::endl;
-			std::cout << "where: " << int(lower_is_start) << int(upper_is_end) << std::endl;
-
 			// Case of lower touching other interval
 			if (!lower_is_start && (lower_value == *lower_it)) {
 				--lower_it; lower_is_start=true;
 			}
 
-			std::cout <<"r2 Range from " << int(lower_it-_data.begin()) << " to " << int(upper_it-_data.begin()) << std::endl;
-
 			return Range{lower_it, upper_it, lower_is_start, upper_is_end};
 		}
 
-
-		// Unsafe: Insertion logic
+		/**
+		 * Insertion logic (Unsafe)
+		 * O(1)
+		 */
 		void insertion_logic(const U lower_value, const U upper_value, Range range) {
 
 			// Case of upper touching other interval
 			if (!range.upper_is_end && range.upper_it != _data.end() && (upper_value == *range.upper_it)) {
 				++range.upper_it; range.upper_is_end=true;
 			}
-
-			std::cout <<"i2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
 
 			// Case of whole interval being inside empty region
 			if ((range.upper_it - range.lower_it == 1) && !range.lower_is_start) {
@@ -171,8 +169,6 @@ namespace Dattatypes {
 			range.lower_it += !range.lower_is_start;
 			range.upper_it -= !range.upper_is_end;
 
-			std::cout <<"i2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
-
 			// Modify values
 			*range.lower_it = std::min(*range.lower_it, lower_value);
 			*range.upper_it = std::max(*range.upper_it, upper_value);
@@ -181,17 +177,16 @@ namespace Dattatypes {
 			if (range.upper_it - range.lower_it > 1) _data.erase(range.lower_it+1, range.upper_it);
 		}
 
-
-		// Unsafe: Erasure logic
+		/**
+		 * Erasure logic (Unsafe)
+		 * O(1)
+		 */
 		void erasure_logic(const U lower_value, const U upper_value, Range range) {
 
 			// Case of upper touching other interval
 			if (!range.upper_is_end && range.upper_it != _data.end() && (upper_value == *range.upper_it)) {
 				++range.upper_it; range.upper_is_end=true;
 			}
-
-			std::cout <<"e2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
-
 
 			// Case of whole interval being inside empty region
 			if ((range.upper_it - range.lower_it == 1) && range.lower_is_start) {
@@ -203,15 +198,12 @@ namespace Dattatypes {
 			range.lower_it += range.lower_is_start;
 			range.upper_it -= range.upper_is_end;
 
-			std::cout <<"e2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
-
 			// Modify values
 			*range.lower_it = std::min(*range.lower_it, lower_value);
 			*range.upper_it = std::max(*range.upper_it, upper_value);
 
 			// Erase any gaps in the interval
 			if (range.upper_it - range.lower_it > 1) _data.erase(range.lower_it+1, range.upper_it);
-
 		}
 
 

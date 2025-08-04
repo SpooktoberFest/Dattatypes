@@ -53,6 +53,6 @@
 #define LOG_FATAL(...)
 #endif
 
-#define runtime_assert(pred, expected, name) \
-    if ((pred) == expected) { LOG_INFO("{}Assertion success: {} = {}", ANSI_COLOR_GREEN, name, expected); } \
-    else { LOG_ERROR("Assertion failure: {} = {} (expected {})", name, pred, expected); }
+#define runtime_assert(expression, expected, name) \
+    if ((expression) == expected) { LOG_INFO("{}Assertion success: {} = {}", ANSI_COLOR_GREEN, name, expected); } \
+    else { LOG_ERROR("Assertion failure: {} = {} (expected {})", name, expression, expected); }

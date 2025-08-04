@@ -19,5 +19,10 @@ for file in bin/*; do
         "$file"
     fi
 done
+# ./bin/enum_flags
+# ./bin/internal_ptr
+# ./bin/prec
+# ./bin/unlock_map
+
 
 echo "::FINISHED::"
