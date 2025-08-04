@@ -4,6 +4,7 @@
 
 #include "debug.hpp"
 #include "unlock_map.hpp"
+#include "string"
 
 static constexpr auto src = "UnlockMap:TEST";
 using namespace std;
@@ -11,15 +12,10 @@ using namespace Dattatypes;
 
 #define LOG_CONTENT \
     LOG_DEBUG("Content:"); \
-    for (auto elem : colors._data) { \
+    for (auto elem : map._data) { \
         LOG_DEBUG("* {}", elem); \
     }
 
-
-
-// Testing
-int main() {
-    LOG_INFO("=== Beginning Tests for Unlock Map ===");
 
 enum class Number : int8_t {
     N_18 = -18,
@@ -31,125 +27,118 @@ enum class Number : int8_t {
     P_13, P_14, P_15, P_16, P_17, P_18
 };
 
+std::string vec2str(const std::vector<int8_t>& vec) {
+    std::string result = "[";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        result += std::to_string(int(vec[i]));
+        if (i != vec.size() - 1)
+            result += ", ";
+    }
+    result += "]";
+    return result;
+}
+
+// Testing
+int main() {
+    LOG_INFO("=== Beginning Tests for Unlock Map ===");
 
 
-    std::string test;
     int num=0;
-    unlock_map<Number> colors;
+    unlock_map<Number> map;
 
-    test = "Empty check";
-    LOG_WARN("Test {} : {}", ++num, test);
-    runtime_assert(colors.empty(), test, 1);
+    LOG_WARN("Test {} - Empty check", ++num);
+    runtime_assert(map.empty(), 1, "empty()");
 
-    test = "Single insert into empty"; // +2
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.insert(Number::ZERO);
-    runtime_assert(!colors.check(Number::N_1), test, 1);
-    runtime_assert(colors.check(Number::ZERO), test, 2);
-    runtime_assert(!colors.check(Number::P_1), test, 3);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 1, test, "size");
+    LOG_WARN("Test {} - Single insert into empty", ++num);
+    map.insert(Number::ZERO);
+    runtime_assert(map.check(Number::N_1), false, "check(N_1)");
+    runtime_assert(map.check(Number::ZERO), true, "check(ZERO)");
+    runtime_assert(map.check(Number::P_1), false, "check(P_1)");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 1, "size");
 
-    test = "Range insert across single |"; // mod2
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.insert(Number::N_2, Number::P_2);
-    runtime_assert(!colors.check(Number::N_3), test, 1);
-    runtime_assert(colors.check(Number::N_2), test, 2);
-    runtime_assert(colors.check(Number::ZERO), test, 3);
-    runtime_assert(colors.check(Number::P_2), test, 4);
-    runtime_assert(!colors.check(Number::P_3), test, 5);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 5, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Range insert across single", ++num);
+    map.insert(Number::N_2, Number::P_2);
+    runtime_assert(map.check(Number::N_3), false, "check(N_3)");
+    runtime_assert(map.check(Number::N_2), true, "check(N_2)");
+    runtime_assert(map.check(Number::ZERO), true, "check(ZERO)");
+    runtime_assert(map.check(Number::P_2), true, "check(P_2)");
+    runtime_assert(map.check(Number::P_3), false, "check(P_3)");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 5, "size");
+
+    LOG_WARN("Test {} - Range insert across lower", ++num);
+    map.insert(Number::N_4, Number::ZERO);
+    runtime_assert(vec2str(map._data), "[-4, 3]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 7, "size");
     LOG_CONTENT
 
-    test = "Range insert across upper"; // mod1
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.insert(Number::N_4, Number::ZERO);
-    runtime_assert(!colors.check(Number::N_5), test, 1);
-    runtime_assert(colors.check(Number::N_4), test, 2);
-    runtime_assert(colors.check(Number::P_2), test, 3);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 7, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Range insert across upper", ++num);
+    map.insert(Number::ZERO, Number::P_4);
+    runtime_assert(vec2str(map._data), "[-4, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 9, "size");
     LOG_CONTENT
 
-    test = "Range insert across lower"; // mod1
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.insert(Number::ZERO, Number::P_4);
-    runtime_assert(colors.check(Number::N_4), test, 1);
-    runtime_assert(colors.check(Number::P_4), test, 2);
-    runtime_assert(!colors.check(Number::P_5), test, 3);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 9, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Single erase into empty", ++num);
+    map.erase(Number::P_15);
+    runtime_assert(vec2str(map._data), "[-4, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 9, "size");
     LOG_CONTENT
 
-    test = "Single erase into empty"; // nop
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.erase(Number::P_15);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 9, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Single insert into range", ++num);
+    map.insert(Number::ZERO);
+    runtime_assert(vec2str(map._data), "[-4, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 9, "size");
     LOG_CONTENT
 
-    test = "Single insert into range"; // nop
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.insert(Number::ZERO);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 9, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Single erase into range", ++num);
+    map.erase(Number::ZERO);
+    runtime_assert(vec2str(map._data), "[-4, 0, 1, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 4, "datasize");
+    runtime_assert(map.size(), 8, "size");
     LOG_CONTENT
 
-    test = "Single erase into range"; // +2
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.erase(Number::ZERO);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 4, test, "datasize");
-    runtime_assert(colors.size() == 8, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Range erase over gap", ++num);
+    map.erase(Number::N_2, Number::P_2);
+    runtime_assert(vec2str(map._data), "[-4, -2, 3, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 4, "datasize");
+    runtime_assert(map.size(), 4, "size");
     LOG_CONTENT
 
-    test = "Single insert into empty"; // -2
-    LOG_WARN("Test {} : {}", ++num, test);
-    colors.insert(Number::ZERO);
-    runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    runtime_assert(colors._data.size() == 2, test, "datasize");
-    runtime_assert(colors.size() == 9, test, ("size " + std::to_string(colors.size())));
+    LOG_WARN("Test {} - Single insert into gap", ++num);
+    map.insert(Number::ZERO);
+    runtime_assert(vec2str(map._data), "[-4, -2, 0, 1, 3, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 6, "datasize");
+    runtime_assert(map.size(), 5, "size");
     LOG_CONTENT
 
-    // test = "Range erase inside range"; // +2
-    // LOG_WARN("Test {} : {}", ++num, test);
-    // colors.erase(Number::N_2, Number::P_2);
-    // runtime_assert(!colors.check(Number::N_3), test, 1);
-    // runtime_assert(colors.check(Number::N_2), test, 2);
-    // runtime_assert(colors.check(Number::P_2), test, 3);
-    // runtime_assert(!colors.check(Number::P_3), test, 4);
-    // runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    // runtime_assert(colors._data.size() == 4, test, "datasize");
-    // runtime_assert(colors.size() == 4, test, ("size " + std::to_string(colors.size())));
-    // LOG_CONTENT
+    LOG_WARN("Test {} - Range insert onto gap", ++num);
+    map.insert(Number::N_2, Number::P_2);
+    runtime_assert(vec2str(map._data), "[-4, 5]", "data");
+    runtime_assert(!(map._data.size()&1), true, "sanity");
+    runtime_assert(map._data.size(), 2, "datasize");
+    runtime_assert(map.size(), 9, "size");
+    LOG_CONTENT
 
-    // test = "Range insert inside gap"; // -2
-    // LOG_WARN("Test {} : {}", ++num, test);
-    // colors.insert(Number::N_1, Number::P_1);
-    // runtime_assert(!colors.check(Number::N_5), test, 1);
-    // runtime_assert(colors.check(Number::N_4), test, 2);
-    // runtime_assert(colors.check(Number::P_4), test, 3);
-    // runtime_assert(!colors.check(Number::P_5), test, 4);
-    // runtime_assert(!(colors._data.size() & 1), test, "sanity");
-    // runtime_assert(colors._data.size() == 2, test, "datasize");
-    // runtime_assert(colors.size() == 9, test, ("size " + std::to_string(colors.size())));
-    // LOG_CONTENT
-
-    test = "Range erase across upper"; // mod1
-    test = "Range erase across lower"; // mod1
-    test = "Single erase at upper"; // mod1
-    test = "Single erase at lower"; // mod1
-    test = "Single insert onto upper"; // mod1
-    test = "Single insert onto lower"; // mod1
-
-
+    // LOG_WARN("Test {} - Range erase across upper", ++num);
+    // LOG_WARN("Test {} - Range erase across lower", ++num);
+    // LOG_WARN("Test {} - Single erase at upper", ++num);
+    // LOG_WARN("Test {} - Single erase at lower", ++num);
+    // LOG_WARN("Test {} - Single insert onto upper", ++num);
+    // LOG_WARN("Test {} - Single insert onto lower", ++num);
 
 
     LOG_INFO("=== All tests for Unlock Map passed! ===\n\n");

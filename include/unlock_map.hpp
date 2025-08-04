@@ -7,7 +7,10 @@
 
 #include "debug.hpp"
 
-
+/**
+ *
+ * Efficiently maps enum->bool
+ */
 namespace Dattatypes {
 
 	template<typename T>
@@ -37,8 +40,8 @@ namespace Dattatypes {
 				return;
 			}
 
-			Range r = find_range(lower_value, upper_value);
-			insertion_logic(lower_value, upper_value, r);
+			Range range = find_range(lower_value, upper_value);
+			insertion_logic(lower_value, upper_value, range);
 		}
 
 		// Insert a range [item_begin, item_end] of values into the interval set
@@ -57,8 +60,8 @@ namespace Dattatypes {
 				return;
 			}
 
-			Range r = find_range(lower_value, upper_value);
-			insertion_logic(lower_value, upper_value, r);
+			Range range = find_range(lower_value, upper_value);
+			insertion_logic(lower_value, upper_value, range);
 		}
 
 		// Erase a single value from the interval set
@@ -71,26 +74,8 @@ namespace Dattatypes {
 			if (_data.front() > upper_value)
 				return;
 
-			Range r = find_range(lower_value, upper_value);
-
-			// Case of whole interval being inside filled region
-			if ((r.upper_it - r.lower_it == 1) && r.lower_is_start) {
-				_data.insert(_data.begin(), {lower_value, upper_value});
-				return;
-			}
-
-			// Force alignment
-			r.lower_it -= !r.lower_is_start;
-			r.upper_it -= !r.upper_is_end;
-
-			std::cout <<"m2 Range from " << int(r.lower_it-_data.begin()) << " to " << int(r.upper_it-_data.begin()) << std::endl;
-
-			// Modify values
-			*r.lower_it = std::max(*r.lower_it, lower_value);
-			*r.upper_it = std::min(*r.upper_it, upper_value);
-
-			// Erase any gaps in the interval
-			if (r.upper_it - r.lower_it == 1) _data.erase(r.lower_it+1, r.upper_it-1);
+			Range range = find_range(lower_value, upper_value);
+			erasure_logic(lower_value, upper_value, range);
 		}
 
 		// Erase a range [item_begin, item_end] of values from the interval set
@@ -105,46 +90,16 @@ namespace Dattatypes {
 			if (_data.front() > upper_value)
 				return;
 
-			Range r = find_range(lower_value, upper_value);
-
-			std::cout <<"m1 Range from " << int(r.lower_it-_data.begin()) << " to " << int(r.upper_it-_data.begin()) << std::endl;
-			std::cout << "where: " << int(r.lower_is_start) << int(r.upper_is_end) << std::endl;
-
-			// Case of whole interval being inside filled region
-			if ((r.upper_it == r.upper_it == 1) && r.lower_is_start) {
-				_data.insert(_data.begin(), {lower_value, upper_value});
-				return;
-			}
-
-			// Force alignment
-			r.lower_it += !r.lower_is_start;
-			r.upper_it -= !r.upper_is_end;
-
-			std::cout <<"m2 Range from " << int(r.lower_it-_data.begin()) << " to " << int(r.upper_it-_data.begin()) << std::endl;
-
-			std::cout << "min(" << int(*r.lower_it) << ", " << int(lower_value) << ") => " << int(std::min(*r.lower_it, lower_value)) << std::endl;
-			std::cout << "max(" << int(*r.upper_it) << ", " << int(upper_value) << ") => " << int(std::max(*r.upper_it, upper_value)) << std::endl;
-
-			// Modify values
-			*r.lower_it = std::max(*r.lower_it, lower_value);
-			*r.upper_it = std::min(*r.upper_it, upper_value);
-
-			// Erase any gaps in the interval
-			if (r.upper_it - r.lower_it == 1) _data.erase(r.lower_it+1, r.upper_it-1);
+			Range range = find_range(lower_value, upper_value);
+			erasure_logic(lower_value, upper_value, range);
 		}
 
 		// Check whether the item exists in any stored interval
 		bool check(const T item) const {
 			if (_data.empty() || _data[0] > U(item)) return false;
-
 			// Last element not greater than item
 			auto it = std::upper_bound(_data.begin(), _data.end(), U(item)) -1;
-
 			int index = it - _data.begin();
-
-			// const auto src = "TMP";
-			// LOG_DEBUG("Got index: {} while looking for {}", index, item);
-
 			return !(index & 1); // Item already exists if index is odd.
 		}
 
@@ -155,8 +110,9 @@ namespace Dattatypes {
 
 		// Calculates the number of values covered
 		constexpr size_t size() const {
+			if (_data.empty()) return 0;
 			size_t sum=0, i=0;
-			for (; i<_data.size() ; i+=2)
+			for (; i+1<_data.size() ; i+=2)
 				sum += size_t(_data[i+1]-_data[i]);
 			return sum;
 		}
@@ -196,40 +152,65 @@ namespace Dattatypes {
 
 
 		// Unsafe: Insertion logic
-		void insertion_logic(const U lower_value, const U upper_value, Range r) {
+		void insertion_logic(const U lower_value, const U upper_value, Range range) {
 
 			// Case of upper touching other interval
-			if (!r.upper_is_end && r.upper_it != _data.end() && (upper_value == *r.upper_it)) {
-				++r.upper_it; r.upper_is_end=true;
-			}
-			if (r.upper_it == _data.end()) {
-				std::cout <<"upper_it is at end!!" << std::endl;
+			if (!range.upper_is_end && range.upper_it != _data.end() && (upper_value == *range.upper_it)) {
+				++range.upper_it; range.upper_is_end=true;
 			}
 
-			std::cout <<"i2 Range from " << int(r.lower_it-_data.begin()) << " to " << int(r.upper_it-_data.begin()) << std::endl;
-
+			std::cout <<"i2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
 
 			// Case of whole interval being inside empty region
-			if ((r.upper_it - r.lower_it == 1) && !r.lower_is_start) {
-				_data.insert(r.lower_it, {lower_value, upper_value});
+			if ((range.upper_it - range.lower_it == 1) && !range.lower_is_start) {
+				_data.insert(range.upper_it, {lower_value, upper_value});
 				return;
 			}
 
 			// Force alignment
-			r.lower_it += !r.lower_is_start;
-			r.upper_it -= !r.upper_is_end;
+			range.lower_it += !range.lower_is_start;
+			range.upper_it -= !range.upper_is_end;
 
-
-			std::cout <<"i2 Range from " << int(r.lower_it-_data.begin()) << " to " << int(r.upper_it-_data.begin()) << std::endl;
-
+			std::cout <<"i2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
 
 			// Modify values
-			*r.lower_it = std::min(*r.lower_it, lower_value);
-			*r.upper_it = std::max(*r.upper_it, upper_value);
+			*range.lower_it = std::min(*range.lower_it, lower_value);
+			*range.upper_it = std::max(*range.upper_it, upper_value);
 
 			// Erase any gaps in the interval
-			if (r.upper_it - r.lower_it > 1) _data.erase(r.lower_it+1, r.upper_it-1);
+			if (range.upper_it - range.lower_it > 1) _data.erase(range.lower_it+1, range.upper_it);
+		}
 
+
+		// Unsafe: Erasure logic
+		void erasure_logic(const U lower_value, const U upper_value, Range range) {
+
+			// Case of upper touching other interval
+			if (!range.upper_is_end && range.upper_it != _data.end() && (upper_value == *range.upper_it)) {
+				++range.upper_it; range.upper_is_end=true;
+			}
+
+			std::cout <<"e2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
+
+
+			// Case of whole interval being inside empty region
+			if ((range.upper_it - range.lower_it == 1) && range.lower_is_start) {
+				_data.insert(range.upper_it, {lower_value, upper_value});
+				return;
+			}
+
+			// Force alignment
+			range.lower_it += range.lower_is_start;
+			range.upper_it -= range.upper_is_end;
+
+			std::cout <<"e2 Range from " << int(range.lower_it-_data.begin()) << " to " << int(range.upper_it-_data.begin()) << std::endl;
+
+			// Modify values
+			*range.lower_it = std::min(*range.lower_it, lower_value);
+			*range.upper_it = std::max(*range.upper_it, upper_value);
+
+			// Erase any gaps in the interval
+			if (range.upper_it - range.lower_it > 1) _data.erase(range.lower_it+1, range.upper_it);
 
 		}
 
