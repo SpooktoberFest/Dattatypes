@@ -3,6 +3,7 @@
 # To do:
 
 Now:
+- Just a few more imporvements for internal_ptr
 - Make tests for enum_flags
 - Make trigonometric functions for Prec
 
@@ -22,5 +23,13 @@ Later:
 # Memo:
 
 ```
+
+
+
+
+
+
+
+
 
 ```

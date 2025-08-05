@@ -12,11 +12,13 @@ static constexpr auto src = "Prec:TEST";
 using namespace std;
 using namespace Dattatypes;
 
+struct Entity;
+typedef t_internal_ptr<Entity, Entity> e2e_ptr;
 
 struct Entity {
     Entity(int value) : _value(value) {}
     int _value;
-    internal_ptr<Entity> _entity_ptr = internal_ptr<Entity>(this);
+    e2e_ptr _entity_ptr = e2e_ptr(this);
 };
 
 
@@ -26,7 +28,7 @@ int main() {
 
     int num=0;
     std::vector<Entity> list = {0, 1, 2, 3};
-    internal_ptr<Entity> outsider;
+    e2e_ptr outsider;
 
     LOG_WARN("Test {} - has_valid_target correctness checks", ++num);
     runtime_assert(list[0]._entity_ptr.has_valid_target(), false, "list[0].has_valid_target");

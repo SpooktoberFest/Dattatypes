@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <cstdint>
+#include <utility>
+#include <algorithm>
 #include <stdexcept>
 
 #include "debug.hpp"
@@ -11,50 +13,34 @@
 namespace Dattatypes {
 
     /**
-     * Internal Smart Pointer (Template Class)
+     * Smart Internal Pointer
      * Designed to allow moving objects to reference eachother without wrapping or owning them.
      * Should live inside the referenced object, and should be initialized with a pointer to the parent.
      * Holds a pointer to its target.
      */
-    template <typename T>
     class internal_ptr {
-        using ThisType = internal_ptr<T>;
-
-    static constexpr const auto src = "internal_ptr";
-
+        static constexpr const auto src = "TMP V";
     public:
-        // Default Constructor
-        internal_ptr() : _target_ptr(nullptr) { _internal_ptrs.emplace_back(this); }
-        // Parameterized Constructor
-        internal_ptr(T *parent, ThisType *target = nullptr) :
-            _target_ptr(target) {
-            _dist = intptr_t(this) - intptr_t(parent);
-            if (_dist < 0) throw std::runtime_error("A non-parent object must never be declared as parent.");
-            _internal_ptrs.emplace_back(this);
-        }
-        // Copy Constructor (Non-functional)
-        internal_ptr(const ThisType &other) :
-            _target_ptr(other.get_target()) {
-            _internal_ptrs.emplace_back(this);
-        }
-        // Move Constructor
-        internal_ptr(ThisType &&other) :
-            _target_ptr(other.get_target()) {
+        internal_ptr() { _internal_ptrs.emplace_back(this); }
+        internal_ptr(void* parent, internal_ptr* target = nullptr)
+            : _parent(parent), _target_ptr(target) { _internal_ptrs.emplace_back(this); }
+        internal_ptr(const internal_ptr &other)
+            : _target_ptr(other.get_target()) { _internal_ptrs.emplace_back(this); }
+        internal_ptr(internal_ptr &&other)
+            : _target_ptr(other.get_target()) {
             // Replace references to `other` with `this`.
-            for (ThisType* fellow : _internal_ptrs) {
-                if (fellow->has_valid_target() && fellow->get_target() == &other)
+            for (internal_ptr* fellow : _internal_ptrs) {
+                if (fellow->get_target() == &other)
                 fellow->set_target(this);
             }
-            // Clear out other.
-            other.clear();
+            other.clear_target();
             _internal_ptrs.emplace_back(this);
         }
-        // Destructor
         ~internal_ptr() {
             // Clear all references to `this`.
-            for (ThisType* fellow : _internal_ptrs) {
-                if (fellow->has_valid_target() && fellow->get_target() == this)
-                    fellow->clear();
+            for (internal_ptr* fellow : _internal_ptrs) {
+                if (fellow->get_target() == this)
+                    fellow->clear_target();
             }
             // Remove this from _internal_ptrs.
             auto it = std::find(_internal_ptrs.begin(), _internal_ptrs.end(), this);
@@ -65,47 +51,105 @@ namespace Dattatypes {
         }
 
         // Setters
-        ThisType &set_target(ThisType *target) { _target_ptr = target; return *this; }
-        ThisType &clear() { _target_ptr = nullptr; return *this; }
+        internal_ptr& set_target(internal_ptr* target) { _target_ptr = target; return *this; }
+        internal_ptr& clear_target() { _target_ptr = nullptr; return *this; }
 
         // Getters
-        ThisType *get_target() const { return _target_ptr; }
-        T *get_parent() const { return reinterpret_cast<T*>(reinterpret_cast<intptr_t>(this) - _dist); }
+        internal_ptr* get_target() const { return _target_ptr; }
+        void* get_parent() const { return static_cast<void*>(_parent); }
 
         // Operators
-        ThisType &operator=(ThisType && other) {
+        internal_ptr& operator=(internal_ptr && other) {
             if (this == &other) return *this;
             // Clear all references to `this` and replace references to `other` with `this`.
-            for (ThisType* fellow : _internal_ptrs) {
-                if (fellow->has_valid_target()) {
-                    const auto target = fellow->get_target();
-                    if (target == this) fellow->clear();
-                    else if (target == &other) fellow->set_target(this);
-                }
+            for (internal_ptr* fellow : _internal_ptrs) {
+                const auto target = fellow->get_target();
+                if (target == this) fellow->clear_target();
+                else if (target == &other) fellow->set_target(this);
             }
             _target_ptr = other.get_target();
-            other.clear();
+            other.clear_target();
             return *this;
         }
-        ThisType &operator=(const ThisType &other) { set_target(other.get_target()); return *this; }
-        T &operator*() const { return *_target_ptr->get_parent(); }
-        T *operator->() const { return _target_ptr->get_parent(); }
+        internal_ptr& operator=(const internal_ptr &other) { set_target(other.get_target()); return *this; }
+        void* operator->() const { return get_target()->get_parent(); }
 
         // Safety Checks
         bool has_valid_target() const { return (_target_ptr); }
-        bool is_valid_target() const { return _dist >= 0; }
 
     private:
+        void* _parent;
 
-        ThisType *_target_ptr = nullptr;
-        static intptr_t _dist;
-        static std::vector<ThisType *> _internal_ptrs;
+    protected:
+        internal_ptr* _target_ptr = nullptr;
+        static std::vector<internal_ptr*> _internal_ptrs;
     };
 
-    template <typename T>
-    std::vector<internal_ptr<T> *> internal_ptr<T>::_internal_ptrs;
-    template <typename T>
-    intptr_t internal_ptr<T>::_dist = -1; // Initialized with invalid value;
+
+    /**
+     * Smart Internal Template Pointer - "Tinternal pointer"
+     * Designed to allow moving objects to reference eachother without wrapping or owning them.
+     * Should live inside the referenced object, and should be initialized with a pointer to the parent.
+     * Holds a pointer to its target.
+     */
+    template <typename ThisParent, typename TargetParent>
+    class t_internal_ptr : internal_ptr {
+        using ThisType = t_internal_ptr<ThisParent, TargetParent>;
+        using TargetType = t_internal_ptr<TargetParent, ThisParent>; // TODO
+
+        // Deleted
+        t_internal_ptr(void* parent, internal_ptr* target = nullptr) = delete;
+        t_internal_ptr(const internal_ptr & other) = delete;
+        t_internal_ptr(internal_ptr && other) = delete;
+        internal_ptr& operator=(const internal_ptr & other) = delete;
+        internal_ptr& operator=(internal_ptr && other) = delete;
+        internal_ptr &set_target(internal_ptr* target) = delete;
+
+    public:
+        t_internal_ptr() = default;
+        t_internal_ptr(ThisParent* parent, TargetType* target = nullptr) {
+            set_target(target);
+            _dist = intptr_t(this) - intptr_t(parent);
+        }
+        t_internal_ptr(const ThisType &other) : internal_ptr(other) {}
+        t_internal_ptr(ThisType &&other) : internal_ptr(std::move(other)) {}
+        ~t_internal_ptr() = default;
+
+        // Setters
+        ThisType &set_target(TargetType* target) { _target_ptr = reinterpret_cast<internal_ptr*>(target); return *this; }
+        ThisType &clear_target() { _target_ptr = nullptr; return *this; }
+
+        // Getters
+        TargetType* get_target() const { return reinterpret_cast<TargetType*>(_target_ptr); }
+        ThisParent* get_parent() const {
+            return reinterpret_cast<ThisParent*>(reinterpret_cast<intptr_t>(this) - _dist);
+        }
+
+        // Operators
+        ThisType& operator=(ThisType && other) {
+            internal_ptr::operator=(std::move(other));
+            return *this;
+        }
+        ThisType& operator=(const ThisType &other) { set_target(other.get_target()); return *this; }
+        TargetParent& operator*() const { return *get_target()->get_parent(); }
+        TargetParent* operator->() const { return get_target()->get_parent(); }
+
+        // Safety Checks
+        bool has_valid_target() const { return (_target_ptr); }
+
+    private:
+        static intptr_t _dist;
+    };
+
+
+    std::vector<internal_ptr*> internal_ptr::_internal_ptrs;
+    template <typename ThisParent, typename TargetParent>
+    intptr_t t_internal_ptr<ThisParent, TargetParent>::_dist = -1; // Initialized with invalid value;
+
+
+
+
+
 
 
 }; // namespace Dattatypes
