@@ -6,7 +6,7 @@
 #include "unlock_map.hpp"
 #include "string"
 
-static constexpr auto src = "UnlockMap:TEST";
+static constexpr auto src = "unlock_map:TEST";
 using namespace std;
 using namespace Dattatypes;
 
@@ -35,7 +35,7 @@ std::string vec2str(const std::vector<int8_t>& vec) {
 
 // Testing
 int main() {
-    LOG_INFO("=== Beginning Tests for Unlock Map ===");
+    LOG_INFO("=== Beginning Tests for unlock_map ===");
 
     int num=0;
     unlock_map<Number> map;
@@ -127,6 +127,6 @@ int main() {
     // LOG_WARN("Test {} - Single insert onto lower", ++num);
 
 
-    LOG_INFO("=== All tests for Unlock Map passed! ===\n\n");
+    LOG_INFO("=== All tests for unlock_map passed! ===\n\n");
     return 0;
 }

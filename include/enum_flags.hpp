@@ -12,22 +12,35 @@ namespace Dattatypes {
 
     #define ASSERT_SCOPED_ENUM(T) static_assert(is_scoped_enum_v<T>, "T must be a scoped enum (enum class)");
 
+    // template <typename T>
+    // // add integral check using type_traits
+
+    // typename std::enable_if<is_scoped_enum_v<T>>::type
+    // add(T a, T2 b)
+    // {
+    //     return a + b;
+    // }
+
+
+
+
 
     // Bitwise Enum Operators
     template <typename T>
-    constexpr T operator|(const T a, const T b) {
-        ASSERT_SCOPED_ENUM(T)
+    constexpr std::enable_if_t<is_scoped_enum_v<T>, T>
+    operator|(T a, T b) {
         using U = std::underlying_type_t<T>;
-        return T(U(a) | U(b));
-    };
+        return static_cast<T>(static_cast<U>(a) | static_cast<U>(b));
+    }
     template <typename T>
-    constexpr T operator&(const T a, const T b) {
-        ASSERT_SCOPED_ENUM(T)
+    constexpr std::enable_if_t<is_scoped_enum_v<T>, T>
+    operator&(const T a, const T b) {
         using U = std::underlying_type_t<T>;
         return T(U(a) & U(b));
     };
     template <typename T>
-    constexpr T operator^(const T a, const T b) {
+    constexpr std::enable_if_t<is_scoped_enum_v<T>, T>
+    operator^(const T a, const T b) {
         ASSERT_SCOPED_ENUM(T)
         using U = std::underlying_type_t<T>;
         return T(U(a) ^ U(b));
