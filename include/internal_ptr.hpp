@@ -1,4 +1,5 @@
 #pragma once
+// === HEADER ONLY ===
 
 #include <vector>
 #include <cstdint>
@@ -11,7 +12,7 @@ namespace dattatypes {
 
     class internal_base {
     protected:
-        static std::vector<internal_base*> _internal_ptrs;
+        inline static std::vector<internal_base*> _internal_ptrs;
     };
 
 
