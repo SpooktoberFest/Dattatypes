@@ -8,7 +8,7 @@
 
 static constexpr auto src = "unlock_map:TEST";
 using namespace std;
-using namespace Dattatypes;
+using namespace dattatypes;
 
 
 enum class Number : int8_t {

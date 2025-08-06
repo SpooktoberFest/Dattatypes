@@ -6,7 +6,7 @@
 
 static constexpr auto src = "Prec:TEST";
 using namespace std;
-using namespace Dattatypes;
+using namespace dattatypes;
 
 
 // Testing
@@ -15,7 +15,7 @@ int main() {
 
     constexpr prec32 a(2);
     constexpr prec32 b(0.5);
-    constexpr prec32 c(3.0);
+    constexpr prec32 c = 3.0;
 
     // Addition
     static_assert((a + b) == prec32(2.5), "Addition failed step 1");

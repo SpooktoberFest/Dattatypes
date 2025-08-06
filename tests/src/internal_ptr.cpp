@@ -10,7 +10,7 @@
 
 static constexpr auto src = "internal_ptr:TEST";
 using namespace std;
-using namespace Dattatypes;
+using namespace dattatypes;
 
 struct Entity;
 typedef internal_ptr<Entity> ie_ptr;
@@ -68,6 +68,10 @@ int main() {
     list.erase(list.begin() + 2);
     runtime_assert(outsider.has_valid_target(), false, "outsider.has_valid_target");
     runtime_assert(list[1]._entity_ptr.has_valid_target(), true, "l1.has_valid_target");
+
+    LOG_WARN("Test {} - Copy l0->l2", ++num);
+    list[2] = list[0];
+    runtime_assert(list[1]._entity_ptr.has_valid_target(), false, "l1.has_valid_target");
 
     LOG_INFO("=== All tests for internal_ptr passed! ===\n\n");
     return 0;

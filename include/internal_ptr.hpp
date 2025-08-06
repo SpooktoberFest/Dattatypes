@@ -1,12 +1,11 @@
 #pragma once
-// === HEADER ONLY ===
 
 #include <vector>
 #include <cstdint>
 #include <algorithm>
 
 
-namespace Dattatypes {
+namespace dattatypes {
 
     template<typename T> class internal_ref;
 
@@ -14,7 +13,6 @@ namespace Dattatypes {
     protected:
         static std::vector<internal_base*> _internal_ptrs;
     };
-    std::vector<internal_base*> internal_base::_internal_ptrs;
 
 
     template<typename T>
@@ -71,7 +69,7 @@ namespace Dattatypes {
         using PointerType = internal_ptr<T>;
     public:
         internal_ref() {}
-        internal_ref(const internal_ref &other) {}
+        internal_ref(const internal_ref &) {}
         internal_ref(internal_ref &&other) {
             // Replace references to `other` with `this`.
             for (internal_base* base_ptr : _internal_ptrs) {
@@ -93,6 +91,7 @@ namespace Dattatypes {
         T* get_parent() { return reinterpret_cast<T*>(this); }
 
         // Operators
+        internal_ref& operator=(const internal_ref &) { return *this; }
         internal_ref& operator=(internal_ref && other) {
             if (this == &other) return *this;
             // Clear all references to `this` and replace references to `other` with `this`.
@@ -116,4 +115,4 @@ namespace Dattatypes {
 
 
 
-}; // namespace Dattatypes
+}; // namespace dattatypes

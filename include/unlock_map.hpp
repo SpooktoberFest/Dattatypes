@@ -11,7 +11,7 @@
  *
  * Efficiently maps enum->bool
  */
-namespace Dattatypes {
+namespace dattatypes {
 
 	template<typename T>
 	class unlock_map {
@@ -211,4 +211,4 @@ namespace Dattatypes {
 
 
 
-}; // namespace Dattatypes
+}; // namespace dattatypes

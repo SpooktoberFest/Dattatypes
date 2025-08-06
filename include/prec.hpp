@@ -4,7 +4,14 @@
 #include <type_traits>
 #include <cmath>
 
-namespace Dattatypes {
+namespace dattatypes {
+
+    template <typename T, int order> class Prec;
+
+    // Prec Trait
+    template <typename T> struct is_prec : std::false_type {};
+    template <typename... Args> struct is_prec<Prec<Args...>> : std::true_type {};
+
 
     /**
      * Fixed Precision Integers : Template class Prec
@@ -56,7 +63,6 @@ namespace Dattatypes {
     template <typename T, int order>
     class Prec {
         static_assert(std::is_integral_v<T>, "T must be an integer type");
-        using ThisType = Prec<T, order>;
     public:
         using value_type = T;
         static constexpr T _n = order;
@@ -65,110 +71,124 @@ namespace Dattatypes {
         static constexpr float _f = (_n >= 0) ? 1.0f / float(T(1) << _n) : float(T(1) << -_n);
         static constexpr float _if = 1/_f;
 
+        constexpr Prec(T raw_data, bool is_raw) : _data(raw_data) {}
+
+    public:
+        T _data;
         // Scale from integer space to data space
-        constexpr int scale(const int value) const {
+        constexpr int64_t scale(const int64_t value) const {
             if constexpr (_n >= 0)
                 return (value >= 0) ? value >> _n : value * _f;
             else
                 return (value >= 0) ? value << -_n : value * _f;
         }
         // Scale from data space to integer space
-        constexpr long iscale(T value) const {
+        constexpr int64_t iscale(T value) const {
             if constexpr (_n >= 0)
                 return (value >= 0) ? value << _n : value * _if;
             else
                 return (value >= 0) ? value >> -_n : value * _if;
         }
         // Scale from float space to data space
-        constexpr int fscale(const double value) const { return int(value * _f); }
+        constexpr int64_t fscale(const double value) const { return int64_t(value * _f); }
 
-
-        constexpr Prec(T raw_data, bool is_raw) : _data(raw_data) {}
-
-    public:
-        T _data;
 
         constexpr Prec() = default;
         constexpr ~Prec() = default;
-        constexpr Prec(const int value) : _data(T(scale(value))) {}
-        constexpr Prec(const double value) : _data(T(fscale(value))) {}
-        constexpr Prec(const ThisType& copy_from) : _data(copy_from._data) {}
-        constexpr Prec(ThisType&& move_from) : _data(move_from._data) { move_from._data=0; }
+        constexpr Prec(int value) : _data(scale(value)) {}
+        constexpr Prec(double value) : _data(fscale(value)) {}
+        constexpr Prec(const Prec& copy_from) : _data(copy_from._data) {}
+        constexpr Prec(Prec&& move_from) : _data(move_from._data) { move_from._data = 0; }
 
         // Comparison Operators: ( ==, !=, >, <, >=, <= )
-        constexpr bool operator==(const ThisType other) const { return _data == other._data; }
-        constexpr bool operator!=(const ThisType other) const { return _data != other._data; }
-        constexpr bool operator<(const ThisType other) const { return _data < other._data; }
-        constexpr bool operator>(const ThisType other) const { return _data > other._data; }
-        constexpr bool operator<=(const ThisType other) const { return _data <= other._data; }
-        constexpr bool operator>=(const ThisType other) const { return _data >= other._data; }
+        constexpr bool operator==(const int value) const { return _data == scale(value); }
+        constexpr bool operator!=(const int value) const { return _data != scale(value); }
+        constexpr bool operator<(const int value) const { return _data < scale(value); }
+        constexpr bool operator>(const int value) const { return _data > scale(value); }
+        constexpr bool operator<=(const int value) const { return _data <= scale(value); }
+        constexpr bool operator>=(const int value) const { return _data >= scale(value); }
+        constexpr bool operator==(const double value) const { return _data == fscale(value); }
+        constexpr bool operator!=(const double value) const { return _data != fscale(value); }
+        constexpr bool operator<(const double value) const { return _data < fscale(value); }
+        constexpr bool operator>(const double value) const { return _data > fscale(value); }
+        constexpr bool operator<=(const double value) const { return _data <= fscale(value); }
+        constexpr bool operator>=(const double value) const { return _data >= fscale(value); }
+        constexpr bool operator==(const Prec other) const { return _data == other._data; }
+        constexpr bool operator!=(const Prec other) const { return _data != other._data; }
+        constexpr bool operator<(const Prec other) const { return _data < other._data; }
+        constexpr bool operator>(const Prec other) const { return _data > other._data; }
+        constexpr bool operator<=(const Prec other) const { return _data <= other._data; }
+        constexpr bool operator>=(const Prec other) const { return _data >= other._data; }
 
         // Direct Assignment Operators: ( = )
-        constexpr ThisType& operator=(const int value) { _data = scale(value); return *this; }
-        constexpr ThisType& operator=(const double value) { _data = fscale(value); return *this; }
-        constexpr ThisType& operator=(const ThisType& other) { _data = other._data; return *this; }
-        constexpr ThisType& operator=(ThisType&& other) { _data = other._data; other._data=0; return *this; }
+        constexpr Prec& operator=(const int value) { _data = scale(value); return *this; }
+        constexpr Prec& operator=(const double value) { _data = fscale(value); return *this; }
+
+        // Move and Copy Operators: ( = )
+        constexpr Prec& operator=(const Prec& other) { _data = other._data; return *this; }
+        constexpr Prec& operator=(Prec&& other) { _data = other._data; other._data=0; return *this; }
 
         // Aritmetic Assignment Operators: ( +=, -=, *=, /= )
-        constexpr ThisType& operator+=(const int value) { _data += scale(value); return *this; }
-        constexpr ThisType& operator-=(const int value) { _data -= scale(value); return *this; }
-        constexpr ThisType& operator*=(const int value) { _data *= value; return *this; }
-        constexpr ThisType& operator/=(const int value) { _data /= value; return *this; }
-        constexpr ThisType& operator+=(const double value) { _data += value * _f; return *this; }
-        constexpr ThisType& operator-=(const double value) { _data -= value * _f; return *this; }
-        constexpr ThisType& operator*=(const double value) { _data *= value; return *this; }
-        constexpr ThisType& operator/=(const double value) { _data /= value; return *this; }
-        constexpr ThisType& operator+=(const ThisType other) { _data += other._data; return *this; }
-        constexpr ThisType& operator-=(const ThisType other) { _data -= other._data; return *this; }
-        constexpr ThisType& operator*=(const ThisType other) { (_data *= other._data) <<= (_n); return *this; }
-        constexpr ThisType& operator/=(const ThisType other) { ((_data >>= _n) /= other._data); return *this; }
+        constexpr Prec& operator+=(const int value) { _data += scale(value); return *this; }
+        constexpr Prec& operator-=(const int value) { _data -= scale(value); return *this; }
+        constexpr Prec& operator*=(const int value) { _data *= value; return *this; }
+        constexpr Prec& operator/=(const int value) { _data /= value; return *this; }
+        constexpr Prec& operator+=(const double value) { _data += fscale(value); return *this; }
+        constexpr Prec& operator-=(const double value) { _data -= fscale(value); return *this; }
+        constexpr Prec& operator*=(const double value) { _data *= value; return *this; }
+        constexpr Prec& operator/=(const double value) { _data /= value; return *this; }
+        constexpr Prec& operator+=(const Prec other) { _data += other._data; return *this; }
+        constexpr Prec& operator-=(const Prec other) { _data -= other._data; return *this; }
+        constexpr Prec& operator*=(const Prec other) { (_data *= other._data) <<= (_n); return *this; }
+        constexpr Prec& operator/=(const Prec other) { ((_data >>= _n) /= other._data); return *this; }
 
         // Bitwise Assignment Operators: ( >>=, <<=, &=, ^=, |= )
-        constexpr ThisType& operator>>=(const unsigned value) { _data >>= value; return *this; }
-        constexpr ThisType& operator<<=(const unsigned value) { _data <<= value; return *this; }
-        constexpr ThisType& operator&=(const int value) { _data &= value; return *this; }
-        constexpr ThisType& operator^=(const int value) { _data ^= value; return *this; }
-        constexpr ThisType& operator|=(const int value) { _data |= value; return *this; }
-        constexpr ThisType& operator&=(const ThisType other) { _data &= other._data; return *this; }
-        constexpr ThisType& operator^=(const ThisType other) { _data ^= other._data; return *this; }
-        constexpr ThisType& operator|=(const ThisType other) { _data |= other._data; return *this; }
+        constexpr Prec& operator>>=(const unsigned value) { _data >>= value; return *this; }
+        constexpr Prec& operator<<=(const unsigned value) { _data <<= value; return *this; }
+        constexpr Prec& operator&=(const int value) { _data &= value; return *this; }
+        constexpr Prec& operator^=(const int value) { _data ^= value; return *this; }
+        constexpr Prec& operator|=(const int value) { _data |= value; return *this; }
+        constexpr Prec& operator&=(const Prec other) { _data &= other._data; return *this; }
+        constexpr Prec& operator^=(const Prec other) { _data ^= other._data; return *this; }
+        constexpr Prec& operator|=(const Prec other) { _data |= other._data; return *this; }
 
         // Aritmetic Operators:         ( +, -, *, / )
-        constexpr ThisType operator+(const int value) const { return ThisType(_data + scale(value), true); }
-        constexpr ThisType operator-(const int value) const { return ThisType(_data - scale(value), true); }
-        constexpr ThisType operator*(const int value) const { return ThisType(_data * value, true); }
-        constexpr ThisType operator/(const int value) const { return ThisType(_data / value, true); }
-        constexpr ThisType operator+(const double value) const { return ThisType(_data + fscale(value), true); }
-        constexpr ThisType operator-(const double value) const { return ThisType(_data - fscale(value), true); }
-        constexpr ThisType operator*(const double value) const { return ThisType(_data * value, true); }
-        constexpr ThisType operator/(const double value) const { return ThisType(_data / value, true); }
-        constexpr ThisType operator+(const ThisType other) const { return ThisType(_data + other._data, true); }
-        constexpr ThisType operator-(const ThisType other) const { return ThisType(_data - other._data, true); }
-        constexpr ThisType operator*(const ThisType other) const { return ThisType(iscale(_data * other._data), true); }
-        constexpr ThisType operator/(const ThisType other) const { return ThisType(scale(_data) / other._data, true); }
+        constexpr Prec operator+(const int value) const { return Prec(_data + scale(value), true); }
+        constexpr Prec operator-(const int value) const { return Prec(_data - scale(value), true); }
+        constexpr Prec operator*(const int value) const { return Prec(_data * value, true); }
+        constexpr Prec operator/(const int value) const { return Prec(_data / value, true); }
+        constexpr Prec operator+(const double value) const { return Prec(_data + fscale(value), true); }
+        constexpr Prec operator-(const double value) const { return Prec(_data - fscale(value), true); }
+        constexpr Prec operator*(const double value) const { return Prec(_data * value, true); }
+        constexpr Prec operator/(const double value) const { return Prec(_data / value, true); }
+        constexpr Prec operator+(const Prec other) const { return Prec(_data + other._data, true); }
+        constexpr Prec operator-(const Prec other) const { return Prec(_data - other._data, true); }
+        constexpr Prec operator*(const Prec other) const { return Prec(iscale(_data * other._data), true); }
+        constexpr Prec operator/(const Prec other) const { return Prec(scale(_data) / other._data, true); }
 
         // Unary Operators: ( !, ++, --, -, ~ )
         constexpr bool operator!() const { return bool(!_data); }
-        constexpr ThisType& operator++() { _data += scale(1); return *this; }
-        constexpr ThisType& operator--() { _data -= scale(1); return *this; }
-        constexpr ThisType operator-() const { return ThisType(-_data, true); }
-        constexpr ThisType operator~() const { return ThisType(~_data, true); }
+        constexpr Prec& operator++() { _data += scale(1); return *this; }
+        constexpr Prec& operator--() { _data -= scale(1); return *this; }
+        constexpr Prec operator-() const { return Prec(-_data, true); }
+        constexpr Prec operator~() const { return Prec(~_data, true); }
 
         // Bitwise  Operators:          ( >>=, <<=, &=, ^=, |= )
-        constexpr ThisType operator>>(const unsigned value) const { return ThisType(_data >>= value, true); }
-        constexpr ThisType operator<<(const unsigned value) const { return ThisType(_data <<= value, true); }
-        constexpr ThisType operator&(const int value) const { return ThisType(_data &= value, true); }
-        constexpr ThisType operator^(const int value) const { return ThisType(_data ^= value, true); }
-        constexpr ThisType operator|(const int value) const { return ThisType(_data |= value, true); }
-        constexpr ThisType operator&(const ThisType other) const { return ThisType(_data &= other._data, true); }
-        constexpr ThisType operator^(const ThisType other) const { return ThisType(_data ^= other._data, true); }
-        constexpr ThisType operator|(const ThisType other) const { return ThisType(_data |= other._data, true); }
+        constexpr Prec operator>>(const unsigned value) const { return Prec(_data >> value, true); }
+        constexpr Prec operator<<(const unsigned value) const { return Prec(_data << value, true); }
+        constexpr Prec operator&(const int value) const { return Prec(_data & value, true); }
+        constexpr Prec operator^(const int value) const { return Prec(_data ^ value, true); }
+        constexpr Prec operator|(const int value) const { return Prec(_data | value, true); }
+        constexpr Prec operator&(const Prec other) const { return Prec(_data & other._data, true); }
+        constexpr Prec operator^(const Prec other) const { return Prec(_data ^ other._data, true); }
+        constexpr Prec operator|(const Prec other) const { return Prec(_data | other._data, true); }
 
         // Conversion Operators:        (int, bool, double, Prec)
         constexpr operator int() const { return iscale(_data); }
         constexpr operator bool() const { return _data != 0; }
         constexpr operator double() const { return double(_data * _if); }
-        template<typename OtherPrec>
+
+        template <typename OtherPrec, std::enable_if_t<is_prec<OtherPrec>::value, int> = 0>
         constexpr explicit operator OtherPrec() const {
             constexpr int shift = OtherPrec::_n - _n;
             using OtherT = typename OtherPrec::value_type;
@@ -181,9 +201,9 @@ namespace Dattatypes {
         }
 
         // Clamping
-        constexpr ThisType& clamp(int maxval) { if (_data > scale(maxval)) _data = scale(maxval); return *this; }
-        constexpr ThisType& clamp(double maxval) { if (_data > (maxval * _f)) _data = (maxval * _f); return *this; }
-        constexpr ThisType& clamp(ThisType max) { if (_data > max._data) _data = max._data; return *this; }
+        constexpr Prec& clamp(int maxval) { if (_data > scale(maxval)) _data = scale(maxval); return *this; }
+        constexpr Prec& clamp(double maxval) { if (_data > (maxval * _f)) _data = (maxval * _f); return *this; }
+        constexpr Prec& clamp(Prec max) { if (_data > max._data) _data = max._data; return *this; }
 
         // Approximate Equality (epsilon is the resolution)
         constexpr bool approx(T value) const {
@@ -195,11 +215,5 @@ namespace Dattatypes {
         }
     };
 
-    // Prec Trait
-    template <typename T>
-    struct is_prec : std::false_type {};
-    template <typename... Args>
-    struct is_prec<Prec<Args...>> : std::true_type {};
 
-
-}; // namespace Dattatypes
+}; // namespace dattatypes

@@ -7,7 +7,7 @@
 
 static constexpr auto src = "enum_flags:TEST";
 using namespace std;
-using namespace Dattatypes;
+using namespace dattatypes;
 
 
 // Testing

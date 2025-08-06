@@ -7,7 +7,7 @@
 
 #include <prec.hpp>
 
-namespace Dattatypes {
+namespace dattatypes {
 
 
     typedef Prec<int8_t, -2>     prec8;     // 8-bit signed 1/4 precision number. Range: [-32, 31.75]
@@ -60,13 +60,13 @@ namespace Dattatypes {
      * TODO: It is currently rather expensive
      */
     template<typename T>
-    constexpr T sqrt(const T& prec, int iterations = 32) {
+    constexpr T sqrt(const T& value, int iterations = 32) {
         ASSERT_PREC(T)
-        if (prec._data < 0)
+        if (value._data < 0)
             throw std::runtime_error("sqrt input should be non-negative");
 
         int shift = -T::_n;
-        u_int64_t S = u_int64_t(prec._data);
+        u_int64_t S = u_int64_t(value._data);
         u_int64_t x_n = (S >> (1 - (-shift >> 1)));
         u_int64_t x_nm1 = 0;
         int t = 1 << shift;
@@ -79,6 +79,13 @@ namespace Dattatypes {
         T res;
         res._data = x_n;
         return res;
+    }
+
+
+    template<typename T>
+    constexpr T abs(const T& value) {
+        ASSERT_PREC(T)
+        return (value._data<0) ? -value : value;
     }
 
 
@@ -107,4 +114,4 @@ namespace Dattatypes {
 
 
 
-}; // namespace Dattatypes
+}; // namespace dattatypes

@@ -5,7 +5,7 @@
 #include <cstdint>
 
 
-namespace Dattatypes {
+namespace dattatypes {
 
     template <typename T>
     constexpr bool is_scoped_enum_v = std::is_enum_v<T> && !std::is_convertible_v<T, std::underlying_type_t<T>>;
@@ -116,4 +116,4 @@ namespace Dattatypes {
 
 
 
-}; // namespace Dattatypes
+}; // namespace dattatypes
