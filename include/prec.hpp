@@ -213,6 +213,10 @@ namespace dattatypes {
             T scaled = fscale(value);
             return (_data > scaled - 1) && (_data < scaled + 1);
         }
+
+        // (De)Serialization
+        template <class Archive>
+        void serialize(Archive &ar) { ar(_data); }
     };
 
 

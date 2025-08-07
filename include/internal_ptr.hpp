@@ -12,7 +12,7 @@ namespace dattatypes {
 
     class internal_base {
     protected:
-        inline static std::vector<internal_base*> _internal_ptrs;
+        inline static std::vector<internal_base*> _internal_ptrs{};
     };
 
 
@@ -60,6 +60,9 @@ namespace dattatypes {
         // Safety Checks
         bool has_valid_target() const { return _target_ptr != nullptr; }
 
+        // (De)Serialization
+        template <class Archive>
+        void serialize(Archive &ar) { ar(_target_ptr); }
     private:
         TargetType* _target_ptr = nullptr;
     };
@@ -107,7 +110,9 @@ namespace dattatypes {
         T& operator*() const { return *get_parent(); }
         T* operator->() const { return get_parent(); }
 
-
+        // (De)Serialization
+        template <class Archive>
+        void serialize(Archive &ar) { ar(); }
     };
 
 

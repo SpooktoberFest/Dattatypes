@@ -8,8 +8,8 @@
 #include "debug.hpp"
 
 /**
- *
  * Efficiently maps enum->bool
+ * Implements std::vector.
  */
 namespace dattatypes {
 
@@ -24,7 +24,7 @@ namespace dattatypes {
 		unlock_map(std::vector<U> vec) : _data(std::move(vec)) {};
 		~unlock_map() = default;
 
-		std::vector<U> _data; // Pairs of [start, past_end]
+		std::vector<U> _data{}; // Pairs of [start, past_end]
 
 		// Insert a single value into the interval set
 		void insert(const T item) {
@@ -117,6 +117,9 @@ namespace dattatypes {
 			return sum;
 		}
 
+        // (De)Serialization
+        template <class Archive>
+        void serialize(Archive &ar) { ar(_data); }
 	private:
 
 		struct Range {

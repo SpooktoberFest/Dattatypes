@@ -10,21 +10,6 @@ namespace dattatypes {
     template <typename T>
     constexpr bool is_scoped_enum_v = std::is_enum_v<T> && !std::is_convertible_v<T, std::underlying_type_t<T>>;
 
-    #define ASSERT_SCOPED_ENUM(T) static_assert(is_scoped_enum_v<T>, "T must be a scoped enum (enum class)");
-
-    // template <typename T>
-    // // add integral check using type_traits
-
-    // typename std::enable_if<is_scoped_enum_v<T>>::type
-    // add(T a, T2 b)
-    // {
-    //     return a + b;
-    // }
-
-
-
-
-
     // Bitwise Enum Operators
     template <typename T>
     constexpr std::enable_if_t<is_scoped_enum_v<T>, T>
@@ -41,7 +26,7 @@ namespace dattatypes {
     template <typename T>
     constexpr std::enable_if_t<is_scoped_enum_v<T>, T>
     operator^(const T a, const T b) {
-        ASSERT_SCOPED_ENUM(T)
+        static_assert(is_scoped_enum_v<T>, "T must be a scoped enum (enum class)");
         using U = std::underlying_type_t<T>;
         return T(U(a) ^ U(b));
     };
@@ -49,7 +34,7 @@ namespace dattatypes {
     // Template Class for using Enums as Flags.
     template <typename T>
     class Flags {
-        ASSERT_SCOPED_ENUM(T)
+        static_assert(is_scoped_enum_v<T>, "T must be a scoped enum (enum class)");
 
     protected:
         using U = std::underlying_type_t<T>;
@@ -82,7 +67,6 @@ namespace dattatypes {
      */
     template <typename T>
     class FlagsOrValue : public Flags<T> {
-        ASSERT_SCOPED_ENUM(T)
         static_assert(requires { T::USE_FLAGS; }, "T must define USE_FLAGS");
 
     public:
@@ -98,7 +82,6 @@ namespace dattatypes {
      */
     template <typename T>
     class FlagsAndValue : public Flags<T> {
-        ASSERT_SCOPED_ENUM(T)
         static_assert(requires { T::NUMBER_OF_FLAGS; }, "T must define NUMBER_OF_FLAGS");
 
         using U = std::underlying_type_t<T>;
