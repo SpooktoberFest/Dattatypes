@@ -60,9 +60,6 @@ namespace dattatypes {
         // Safety Checks
         bool has_valid_target() const { return _target_ptr != nullptr; }
 
-        // (De)Serialization
-        template <class Archive>
-        void serialize(Archive &ar) { ar(_target_ptr); }
     private:
         TargetType* _target_ptr = nullptr;
     };
@@ -76,7 +73,7 @@ namespace dattatypes {
         internal_ref(const internal_ref &) {}
         internal_ref(internal_ref &&other) {
             // Replace references to `other` with `this`.
-            for (internal_base* base_ptr : _internal_ptrs) {
+            for (auto base_ptr : _internal_ptrs) {
                 PointerType* t_ptr = reinterpret_cast<PointerType*>(base_ptr);
                 if (t_ptr->get_target() == &other)
                 t_ptr->set_target(this);
@@ -84,7 +81,7 @@ namespace dattatypes {
         }
         ~internal_ref() {
             // Clear all references to `this`.
-            for (internal_base* base_ptr : _internal_ptrs) {
+            for (auto base_ptr : _internal_ptrs) {
                 PointerType* t_ptr = reinterpret_cast<PointerType*>(base_ptr);
                 if (t_ptr->get_target() == this)
                     t_ptr->clear_target();
@@ -99,7 +96,7 @@ namespace dattatypes {
         internal_ref& operator=(internal_ref && other) {
             if (this == &other) return *this;
             // Clear all references to `this` and replace references to `other` with `this`.
-            for (internal_base* base_ptr : _internal_ptrs) {
+            for (auto base_ptr : _internal_ptrs) {
                 PointerType* t_ptr = reinterpret_cast<PointerType*>(base_ptr);
                 const auto target = t_ptr->get_target();
                 if (target == this) t_ptr->clear_target();
@@ -110,9 +107,6 @@ namespace dattatypes {
         T& operator*() const { return *get_parent(); }
         T* operator->() const { return get_parent(); }
 
-        // (De)Serialization
-        template <class Archive>
-        void serialize(Archive &ar) { ar(); }
     };
 
 

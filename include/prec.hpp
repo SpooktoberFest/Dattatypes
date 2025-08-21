@@ -1,17 +1,10 @@
 #pragma once
 // === HEADER ONLY ===
 
-#include <type_traits>
+#include <concepts>
 #include <cmath>
 
 namespace dattatypes {
-
-    template <typename T, int order> class Prec;
-
-    // Prec Trait
-    template <typename T> struct is_prec : std::false_type {};
-    template <typename... Args> struct is_prec<Prec<Args...>> : std::true_type {};
-
 
     /**
      * Fixed Precision Integers : Template class Prec
@@ -61,8 +54,8 @@ namespace dattatypes {
      *   usage discipline.
      */
     template <typename T, int order>
+        requires std::integral<T>
     class Prec {
-        static_assert(std::is_integral_v<T>, "T must be an integer type");
     public:
         using value_type = T;
         static constexpr T _n = order;
@@ -83,7 +76,7 @@ namespace dattatypes {
                 return (value >= 0) ? value << -_n : value * _f;
         }
         // Scale from data space to integer space
-        constexpr int64_t iscale(T value) const {
+        constexpr int64_t iscale(const int64_t value) const {
             if constexpr (_n >= 0)
                 return (value >= 0) ? value << _n : value * _if;
             else
@@ -95,24 +88,24 @@ namespace dattatypes {
 
         constexpr Prec() = default;
         constexpr ~Prec() = default;
-        constexpr Prec(int value) : _data(scale(value)) {}
-        constexpr Prec(double value) : _data(fscale(value)) {}
+        constexpr Prec(const std::integral auto value) : _data(scale(value)) {}
+        constexpr Prec(const std::floating_point auto value) : _data(fscale(value)) {}
         constexpr Prec(const Prec& copy_from) : _data(copy_from._data) {}
         constexpr Prec(Prec&& move_from) : _data(move_from._data) { move_from._data = 0; }
 
         // Comparison Operators: ( ==, !=, >, <, >=, <= )
-        constexpr bool operator==(const int value) const { return _data == scale(value); }
-        constexpr bool operator!=(const int value) const { return _data != scale(value); }
-        constexpr bool operator<(const int value) const { return _data < scale(value); }
-        constexpr bool operator>(const int value) const { return _data > scale(value); }
-        constexpr bool operator<=(const int value) const { return _data <= scale(value); }
-        constexpr bool operator>=(const int value) const { return _data >= scale(value); }
-        constexpr bool operator==(const double value) const { return _data == fscale(value); }
-        constexpr bool operator!=(const double value) const { return _data != fscale(value); }
-        constexpr bool operator<(const double value) const { return _data < fscale(value); }
-        constexpr bool operator>(const double value) const { return _data > fscale(value); }
-        constexpr bool operator<=(const double value) const { return _data <= fscale(value); }
-        constexpr bool operator>=(const double value) const { return _data >= fscale(value); }
+        constexpr bool operator==(const std::integral auto value) const { return _data == scale(value); }
+        constexpr bool operator!=(const std::integral auto value) const { return _data != scale(value); }
+        constexpr bool operator<(const std::integral auto value) const { return _data < scale(value); }
+        constexpr bool operator>(const std::integral auto value) const { return _data > scale(value); }
+        constexpr bool operator<=(const std::integral auto value) const { return _data <= scale(value); }
+        constexpr bool operator>=(const std::integral auto value) const { return _data >= scale(value); }
+        constexpr bool operator==(const std::floating_point auto value) const { return _data == fscale(value); }
+        constexpr bool operator!=(const std::floating_point auto value) const { return _data != fscale(value); }
+        constexpr bool operator<(const std::floating_point auto value) const { return _data < fscale(value); }
+        constexpr bool operator>(const std::floating_point auto value) const { return _data > fscale(value); }
+        constexpr bool operator<=(const std::floating_point auto value) const { return _data <= fscale(value); }
+        constexpr bool operator>=(const std::floating_point auto value) const { return _data >= fscale(value); }
         constexpr bool operator==(const Prec other) const { return _data == other._data; }
         constexpr bool operator!=(const Prec other) const { return _data != other._data; }
         constexpr bool operator<(const Prec other) const { return _data < other._data; }
@@ -121,22 +114,22 @@ namespace dattatypes {
         constexpr bool operator>=(const Prec other) const { return _data >= other._data; }
 
         // Direct Assignment Operators: ( = )
-        constexpr Prec& operator=(const int value) { _data = scale(value); return *this; }
-        constexpr Prec& operator=(const double value) { _data = fscale(value); return *this; }
+        constexpr Prec& operator=(const std::integral auto value) { _data = scale(value); return *this; }
+        constexpr Prec& operator=(const std::floating_point auto value) { _data = fscale(value); return *this; }
 
         // Move and Copy Operators: ( = )
         constexpr Prec& operator=(const Prec& other) { _data = other._data; return *this; }
         constexpr Prec& operator=(Prec&& other) { _data = other._data; other._data=0; return *this; }
 
         // Aritmetic Assignment Operators: ( +=, -=, *=, /= )
-        constexpr Prec& operator+=(const int value) { _data += scale(value); return *this; }
-        constexpr Prec& operator-=(const int value) { _data -= scale(value); return *this; }
-        constexpr Prec& operator*=(const int value) { _data *= value; return *this; }
-        constexpr Prec& operator/=(const int value) { _data /= value; return *this; }
-        constexpr Prec& operator+=(const double value) { _data += fscale(value); return *this; }
-        constexpr Prec& operator-=(const double value) { _data -= fscale(value); return *this; }
-        constexpr Prec& operator*=(const double value) { _data *= value; return *this; }
-        constexpr Prec& operator/=(const double value) { _data /= value; return *this; }
+        constexpr Prec& operator+=(const std::integral auto value) { _data += scale(value); return *this; }
+        constexpr Prec& operator-=(const std::integral auto value) { _data -= scale(value); return *this; }
+        constexpr Prec& operator*=(const std::integral auto value) { _data *= value; return *this; }
+        constexpr Prec& operator/=(const std::integral auto value) { _data /= value; return *this; }
+        constexpr Prec& operator+=(const std::floating_point auto value) { _data += fscale(value); return *this; }
+        constexpr Prec& operator-=(const std::floating_point auto value) { _data -= fscale(value); return *this; }
+        constexpr Prec& operator*=(const std::floating_point auto value) { _data *= value; return *this; }
+        constexpr Prec& operator/=(const std::floating_point auto value) { _data /= value; return *this; }
         constexpr Prec& operator+=(const Prec other) { _data += other._data; return *this; }
         constexpr Prec& operator-=(const Prec other) { _data -= other._data; return *this; }
         constexpr Prec& operator*=(const Prec other) { (_data *= other._data) <<= (_n); return *this; }
@@ -145,26 +138,26 @@ namespace dattatypes {
         // Bitwise Assignment Operators: ( >>=, <<=, &=, ^=, |= )
         constexpr Prec& operator>>=(const unsigned value) { _data >>= value; return *this; }
         constexpr Prec& operator<<=(const unsigned value) { _data <<= value; return *this; }
-        constexpr Prec& operator&=(const int value) { _data &= value; return *this; }
-        constexpr Prec& operator^=(const int value) { _data ^= value; return *this; }
-        constexpr Prec& operator|=(const int value) { _data |= value; return *this; }
+        constexpr Prec& operator&=(const std::integral auto value) { _data &= value; return *this; }
+        constexpr Prec& operator^=(const std::integral auto value) { _data ^= value; return *this; }
+        constexpr Prec& operator|=(const std::integral auto value) { _data |= value; return *this; }
         constexpr Prec& operator&=(const Prec other) { _data &= other._data; return *this; }
         constexpr Prec& operator^=(const Prec other) { _data ^= other._data; return *this; }
         constexpr Prec& operator|=(const Prec other) { _data |= other._data; return *this; }
 
         // Aritmetic Operators:         ( +, -, *, / )
-        constexpr Prec operator+(const int value) const { return Prec(_data + scale(value), true); }
-        constexpr Prec operator-(const int value) const { return Prec(_data - scale(value), true); }
-        constexpr Prec operator*(const int value) const { return Prec(_data * value, true); }
-        constexpr Prec operator/(const int value) const { return Prec(_data / value, true); }
-        constexpr Prec operator+(const double value) const { return Prec(_data + fscale(value), true); }
-        constexpr Prec operator-(const double value) const { return Prec(_data - fscale(value), true); }
-        constexpr Prec operator*(const double value) const { return Prec(_data * value, true); }
-        constexpr Prec operator/(const double value) const { return Prec(_data / value, true); }
+        constexpr Prec operator+(const std::integral auto value) const { return Prec(_data + scale(value), true); }
+        constexpr Prec operator-(const std::integral auto value) const { return Prec(_data - scale(value), true); }
+        constexpr Prec operator*(const std::integral auto value) const { return Prec(_data * value, true); }
+        constexpr Prec operator/(const std::integral auto value) const { return Prec(_data / value, true); }
+        constexpr Prec operator+(const std::floating_point auto value) const { return Prec(_data + fscale(value), true); }
+        constexpr Prec operator-(const std::floating_point auto value) const { return Prec(_data - fscale(value), true); }
+        constexpr Prec operator*(const std::floating_point auto value) const { return Prec(_data * value, true); }
+        constexpr Prec operator/(const std::floating_point auto value) const { return Prec(_data / value, true); }
         constexpr Prec operator+(const Prec other) const { return Prec(_data + other._data, true); }
         constexpr Prec operator-(const Prec other) const { return Prec(_data - other._data, true); }
         constexpr Prec operator*(const Prec other) const { return Prec(iscale(_data * other._data), true); }
-        constexpr Prec operator/(const Prec other) const { return Prec(scale(_data) / other._data, true); }
+        constexpr Prec operator/(const Prec other) const { return Prec(scale(_data / other._data), true); }
 
         // Unary Operators: ( !, ++, --, -, ~ )
         constexpr bool operator!() const { return bool(!_data); }
@@ -176,9 +169,9 @@ namespace dattatypes {
         // Bitwise  Operators:          ( >>=, <<=, &=, ^=, |= )
         constexpr Prec operator>>(const unsigned value) const { return Prec(_data >> value, true); }
         constexpr Prec operator<<(const unsigned value) const { return Prec(_data << value, true); }
-        constexpr Prec operator&(const int value) const { return Prec(_data & value, true); }
-        constexpr Prec operator^(const int value) const { return Prec(_data ^ value, true); }
-        constexpr Prec operator|(const int value) const { return Prec(_data | value, true); }
+        constexpr Prec operator&(const std::integral auto value) const { return Prec(_data & value, true); }
+        constexpr Prec operator^(const std::integral auto value) const { return Prec(_data ^ value, true); }
+        constexpr Prec operator|(const std::integral auto value) const { return Prec(_data | value, true); }
         constexpr Prec operator&(const Prec other) const { return Prec(_data & other._data, true); }
         constexpr Prec operator^(const Prec other) const { return Prec(_data ^ other._data, true); }
         constexpr Prec operator|(const Prec other) const { return Prec(_data | other._data, true); }
@@ -188,8 +181,13 @@ namespace dattatypes {
         constexpr operator bool() const { return _data != 0; }
         constexpr operator double() const { return double(_data * _if); }
 
-        template <typename OtherPrec, std::enable_if_t<is_prec<OtherPrec>::value, int> = 0>
-        constexpr explicit operator OtherPrec() const {
+
+        template <typename OtherPrec>
+        requires requires {
+            typename OtherPrec::value_type;   // must have value_type
+            { OtherPrec::_n } -> std::convertible_to<int>; // must have static _n
+        }
+        constexpr operator OtherPrec() const {
             constexpr int shift = OtherPrec::_n - _n;
             using OtherT = typename OtherPrec::value_type;
             typename std::conditional_t<(sizeof(T) > sizeof(OtherT)), T, OtherT> value = _data;
@@ -201,15 +199,15 @@ namespace dattatypes {
         }
 
         // Clamping
-        constexpr Prec& clamp(int maxval) { if (_data > scale(maxval)) _data = scale(maxval); return *this; }
-        constexpr Prec& clamp(double maxval) { if (_data > (maxval * _f)) _data = (maxval * _f); return *this; }
+        constexpr Prec& clamp(const std::integral auto maxval) { if (_data > scale(maxval)) _data = scale(maxval); return *this; }
+        constexpr Prec& clamp(const std::floating_point auto maxval) { if (_data > (maxval * _f)) _data = (maxval * _f); return *this; }
         constexpr Prec& clamp(Prec max) { if (_data > max._data) _data = max._data; return *this; }
 
         // Approximate Equality (epsilon is the resolution)
         constexpr bool approx(T value) const {
             return (_data > scale(value) - 1) && (_data < scale(value) + 1);
         }
-        constexpr bool fapprox(const double value) const {
+        constexpr bool fapprox(const std::floating_point auto value) const {
             T scaled = fscale(value);
             return (_data > scaled - 1) && (_data < scaled + 1);
         }

@@ -73,6 +73,10 @@ namespace dattatypes {
         using Flags<T>::Flags;
 
         constexpr bool uses_flags() const { return this->check(T::USE_FLAGS); }
+
+        // (De)Serialization
+        template <class Archive>
+        void serialize(Archive &ar) { ar(this->_data); }
     };
 
     /**
@@ -95,6 +99,10 @@ namespace dattatypes {
         constexpr T get_enum() const { return T(U(this->_data) & enum_mask); };
         constexpr void set_enum(const T value) { this->_data = T(U(this->_data) & ~enum_mask | U(value)); };
         constexpr void clear_flags() { this->_data = get_enum(); };
+
+        // (De)Serialization
+        template <class Archive>
+        void serialize(Archive &ar) { ar(this->_data); }
     };
 
 

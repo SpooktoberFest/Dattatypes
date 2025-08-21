@@ -21,7 +21,7 @@ From `/Dattatypes/`:
 
 ## Standards, Versions, Dependencies
 
-- **C++ Standard**: __
+- **C++ Standard**: 20
 - **CMake**: Minimum version __
 
 

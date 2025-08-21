@@ -2,6 +2,7 @@
 // === HEADER ONLY ===
 
 #include <type_traits>
+#include <concepts>
 #include <cmath>
 #include <stdexcept>
 
@@ -37,17 +38,19 @@ namespace dattatypes {
     typedef Prec<u_int32_t, -31> prob32;    // 32-bit unsigned 1/2147483648 precision number. Range: [0.0, 2.0)
     typedef Prec<u_int64_t, -63> prob64;    // 64-bit unsigned 1/9223372036854775808 precision number. Range: [0.0, 2.0)
 
+    // Prec Concept
+    template <typename T>
+    concept PrecType = requires {
+        typename T::value_type;
+        { T::_n } -> std::convertible_to<int>;
+    };
 
-    #define ASSERT_PREC(T) static_assert( \
-        is_prec<T>::value || \
-        "T should be of type Prec");
-
-    #define ASSERT_ANGLE(T) ASSERT_PREC(T) static_assert( \
+    #define ASSERT_ANGLE(T) static_assert( \
         std::is_signed_v<typename T::value_type> && \
         (T::_n == -(8 * sizeof(typename T::value_type) - 2)), \
         "Type is not a Prec-based angle. I.e.: where the range is [-2.0, 2.0)." );
 
-    #define ASSERT_PROBABILITY(T) ASSERT_PREC(T) static_assert( \
+    #define ASSERT_PROBABILITY(T) static_assert( \
         std::is_unsigned_v<typename T::value_type> && \
         (T::_n == -(8 * sizeof(typename T::value_type) - 1)), \
         "Type is not a Prec-based probability. I.e.: where the range is [0.0, 2.0)." );
@@ -59,9 +62,8 @@ namespace dattatypes {
      *
      * TODO: It is currently rather expensive
      */
-    template<typename T>
+    template <PrecType T>
     constexpr T sqrt(const T& value, int iterations = 32) {
-        ASSERT_PREC(T)
         if (value._data < 0)
             throw std::runtime_error("sqrt input should be non-negative");
 
@@ -82,9 +84,8 @@ namespace dattatypes {
     }
 
 
-    template<typename T>
+    template <PrecType T>
     constexpr T abs(const T& value) {
-        ASSERT_PREC(T)
         return (value._data<0) ? -value : value;
     }
 
